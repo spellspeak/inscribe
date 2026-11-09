@@ -1,0 +1,17 @@
+# What to train, and where. Every setting left out here comes from the base model's recipe.
+game: {{game_id}}
+base: {{base}}                 # glyph-2b, sigil-4b, or a list of both
+
+backend:
+  name: modal
+  # environment: main          # a Modal environment, if you use them
+
+# replay:
+#   source: hf://<dataset>     # the general examples that keep the model's skills
+#   to_one: 4                  # replay examples per game example; never below 3
+
+# train:
+#   epochs: 3                  # when a check fails: more replay first, then fewer epochs, then a lower rank
+
+budget:
+  max_usd: 80                  # `inscribe run` stops before a step that would pass this

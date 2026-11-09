@@ -1,0 +1,88 @@
+# The game sheet: what every step reads. This one is a tiny example. Replace it with your game.
+# Every line of text is one sentence or phrase, at most 160 characters. docs/game-sheet.md describes each field.
+schema_version: game-sheet-0.2
+game_id: {{game_id}}
+
+setting:
+  kind: closed_fictional        # closed_fictional, historical, contemporary or custom
+  technology: Late medieval. Timber and stone, wool and leather, iron tools, carts and river boats.
+  magic_policy: absent          # absent, present or restricted
+  boundary:                     # what the characters know of the real world
+    real_world: none            # none: only the allowed list exists here. all: the real world is this world
+    allowed: [iron, horses, candles, bread, ale]
+    denied: [phones, cars, the internet, electricity]
+
+rules:
+  - There is no magic.
+  - Nobody travels the river road after dark.
+
+things:
+  - {id: fenwick, kind: location, name: Fenwick}
+  - {id: crooked_lantern, kind: location, name: the Crooked Lantern, inside: fenwick}
+  - {id: old_mill, kind: location, name: the Old Mill, inside: fenwick}
+  - {id: millers_guild, kind: faction, name: the Millers' Guild}
+
+characters:
+  - id: npc_tomas
+    name: Tomas
+    role: The barkeep of the Crooked Lantern.
+    location: crooked_lantern
+    voice: Dry and unhurried. Short sentences. Calls strangers "friend".
+    values: [A quiet room., Debts paid on time.]
+    likes: [News from the river road.]
+    dislikes: [Talk of the Old Mill.]
+    relationships:
+      - {who: npc_edda, kind: friend, trust: high, affection: high, opinion: She has never once lied to me.}
+    knows:
+      - {about: crooked_lantern, what: closing_time, value: The Crooked Lantern shuts when the mill bell rings ten., how: self}
+      - about: old_mill
+        what: cellar_key
+        value: He keeps the only key to the Old Mill's cellar on a nail behind the bar.
+        secret:
+          may_tell: [npc_edda]
+          cover_story: The mill's cellar was bricked up before my time.
+    offers:
+      - {what: A mug of ale, price: two coppers}
+      - {what: A bed for the night, kind: service, price: six coppers}
+    speech_examples:
+      - player: "What's good here?"
+        reply: "The ale, friend. The stew is a matter of opinion."
+      - player: "Busy night?"
+        reply: "Busy enough. Sit where you like."
+
+  - id: npc_edda
+    name: Edda
+    role: The last miller of Fenwick, now keeper of the Guild's ledger.
+    location: old_mill
+    voice: Careful and exact. Counts things aloud. Never raises her voice.
+    values: [The ledger kept true.]
+    likes: [A straight answer.]
+    dislikes: [Waste.]
+    relationships:
+      - {who: npc_tomas, kind: friend, trust: high, affection: high, opinion: He keeps what he is given.}
+    knows:
+      - {about: old_mill, what: last_grinding, value: The Old Mill last ground flour eleven winters ago., how: witnessed}
+      - about: millers_guild
+        what: missing_pages
+        value: Three pages are cut from the Guild's ledger, for the year the mill stopped.
+        secret:
+          may_tell: [npc_tomas]
+          cover_story: The ledger is whole. I count the pages every spring.
+    offers:
+      - {what: A sack of flour, price: nine coppers}
+    speech_examples:
+      - player: "Do you still grind here?"
+        reply: "Not for eleven winters. I keep the books now, and the books keep me."
+
+lore:
+  - {text: Fenwick stands where the Marrow river bends twice., importance: high}
+  - {text: The Old Mill stopped eleven winters ago and nobody has started it since., importance: high}
+  - {text: The Millers' Guild once set the price of bread for the whole valley., importance: high}
+  - {text: "What the river gives, the mill keeps.", importance: high, exact: true}
+  - The mill bell rings at ten every night, though the mill is empty.
+  - Market day in Fenwick is the first Friday of the month.
+  - The river road floods every spring.
+
+story:
+  - {stage: The Quiet Week, summary: The player arrives in Fenwick and takes a bed at the Crooked Lantern.}
+  - {stage: The Mill Wakes, summary: A light is seen in the Old Mill and the cellar is found open.}

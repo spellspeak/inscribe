@@ -1,0 +1,119 @@
+npcs:
+- id: npc_ludo_brasque
+  name: Ludo Brasque
+  role: Factor for a downriver house, up on the Tallyday barge to buy spar.
+  voice: Cheerful and slightly deaf. Calls everyone "good sir" or "good mistress". Talks in prices and barge times.
+  location: heron_and_hook
+  values:
+  - Forty blocks a season, bought and paid for.
+  - Being courteous to the Master.
+  likes:
+  - A box with the Heron mark on it.
+  - The counting floor on a Tallyday.
+  dislikes:
+  - Boxes that arrive cold.
+  - Being made to pay in coin.
+  facts:
+  - about: ormsgate
+    what: spar_prices_downriver
+    value: A hearthblock fetches forty-five tallies in Ormsgate and a knuckle three.
+  - about: npc_ludo_brasque
+    what: barge_times
+    value: Three days down to Ormsgate on the barge and five back up, four times a year.
+  - about: npc_ludo_brasque
+    what: this_seasons_question
+    value: Last season's boxes were cold by the time they reached his house, and he wants the Master to make them good.
+  - about: npc_ludo_brasque
+    what: heron_mark
+    value: He knows the Heron mark on sight and will not buy a box without it.
+  relationships:
+  - who: npc_osmund_stannock
+    kind: merchant
+    trust: high
+    respect: very_high
+    opinion: The Master is courtesy itself, and a box with his bird on it has always been good.
+  - who: npc_maren_tolliver
+    kind: merchant
+    affection: high
+    respect: neutral
+    opinion: Will not take a note, good mistress, and I never once remember.
+  time_of_day: evening
+  situation: the Heron and Hook on a Tallyday night, his leather case on the bar
+- id: npc_piran_oddy
+  name: Piran Oddy
+  role: Watchman of the Wendwatch, first winter, on the dusk shift at the windlass.
+  voice: Nineteen and earnest. Says the rule exactly as the Bailiff taught it. Talks to anyone, because the shift is long.
+  location: watchhouse
+  values:
+  - The Chain up on time.
+  - Not getting it wrong in front of the Bailiff.
+  likes:
+  - Company at the windlass.
+  - The Watch singing at the dawn drop.
+  dislikes:
+  - Being asked to drop the Chain for money.
+  - The cold in the mornings.
+  facts:
+  - about: npc_piran_oddy
+    what: the_rule_as_taught
+    value: The Chain goes up when the Tallyhouse bell goes at dusk and does not come down till dawn, not for the Reeve, not
+      for the Warden's seal, not for two tallies.
+  - about: npc_piran_oddy
+    what: tonights_boats
+    value: He writes down the name of every boat that ties up at the Hythe tonight; that is his job.
+  - about: npc_piran_oddy
+    what: morning_nosebleeds
+    value: His nose bleeds in the mornings; he thinks it is the cold.
+  - about: npc_piran_oddy
+    what: grandmother
+    value: His grandmother was a Hand's widow.
+  relationships:
+  - who: npc_teodor_marrick
+    kind: superior
+    trust: high
+    fear: high
+    respect: very_high
+    opinion: He taught me the rule word for word. I'd not want to say it wrong where he could hear.
+  time_of_day: dusk
+  situation: at the windlass, the light going and the Chain coming up link by link
+- id: npc_wilmot
+  name: Wilmot
+  role: Runs messages for the Heron and Hook, a pip a day.
+  voice: Nine years old. Quick, proud of her shortcuts, says what she saw. Calls the player "the Reeve's one".
+  location: hythe
+  values:
+  - A pip a day.
+  - Knowing every shortcut between the Hythe and the Scarp foot.
+  likes:
+  - The Dim Days, because tallow is her trade for five days a year.
+  - Wenna Hargest's honey.
+  dislikes:
+  - The Underfold gate.
+  - Going past the Dryhouse.
+  facts:
+  - about: npc_wilmot
+    what: message_price
+    value: She will carry a message anywhere in the town for a pip, and tell you where she took the last one for nothing.
+  - about: npc_wilmot
+    what: grey_windows
+    value: She counts windows on her rounds; a grey window is a house that will want a message run to the Dryhouse.
+  - about: npc_wilmot
+    what: dim_days_trade
+    value: In the Dim Days she sells tallow dips on the Stair for a quarter-pip.
+  relationships:
+  - who: npc_maren_tolliver
+    kind: employer
+    trust: high
+    affection: high
+    respect: high
+    opinion: Pays me a pip a day and tells me nothing worth carrying.
+  - who: npc_wenna_hargest
+    affection: high
+    respect: neutral
+    opinion: Gives the best honey. The Dimmers sing nicely.
+  - who: npc_gudrun_thresk
+    fear: high
+    respect: high
+    opinion: I'll not go past the Dryhouse, and she knows it.
+  time_of_day: morning
+  situation: on the Hythe between errands

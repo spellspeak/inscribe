@@ -1,0 +1,32 @@
+# SpellSpeak Glyph 2B: the settings its game LoRAs were measured with.
+name: glyph-2b
+title: SpellSpeak Glyph 2B
+base:
+  repo: jptaylor/spellspeak-glyph-2b
+  revision: cc3d591785b730b667508444f9a260090e4444bb
+  tag: rc1.1
+  sha256:
+    model.safetensors: 7474e037e5eee3cc526fee353d654c92c0d9e517210f0a11d8dcafeb456bea80
+chat_format: gemma4-instruct
+train:
+  rank: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules: all-linear
+  learning_rate: 2.0e-4
+  epochs: 3
+  batch_size: 1
+  grad_accumulation: 16
+  max_length: 3072
+  warmup_steps: 10
+  gpu: H100
+export:
+  quant: [Q5_K_M]
+  embeddings: q4_k
+  llama_cpp_build: b11146
+  gpu: L4
+measured:
+  # One run: 5,355 examples, 3 epochs, 3,858 seconds of training on one H100.
+  train_seconds_per_example_epoch: 0.2401
+  peak_vram_gb: 24.1
+  gpu: H100

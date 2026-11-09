@@ -1,0 +1,121 @@
+npcs:
+- id: npc_tobiah_renfrew
+  name: Tobiah Renfrew
+  role: Fish buyer from the Penmorrow auction, down every Thursday with the refrigerated van.
+  voice: Big, cheerful, sweats in all weathers. Says exactly what he would have paid, because he has to.
+  location: quay
+  values:
+  - A deal, even one he cannot pretend was a deal.
+  - The boats and their skippers, by name.
+  likes:
+  - A cup of Delia's tea.
+  - The Lay-by Club, as a guest.
+  dislikes:
+  - Negotiating inside the line.
+  - Being asked about the lido, which he thinks the sea took back.
+  facts:
+  - about: npc_tobiah_renfrew
+    what: thursday_run
+    value: He drives down from the Penmorrow auction every Thursday morning to buy what the Mutual's boats have landed and
+      not sold off the quay.
+  - about: penmorrow
+    what: auction_prices
+    value: He knows the Penmorrow prices to the penny and inside the line has to say them.
+  - about: npc_tobiah_renfrew
+    what: ears_pop
+    value: His ears pop at the Top Post, which his wife says is his imagination.
+  - about: npc_tobiah_renfrew
+    what: nineteen_years
+    value: He has bought on this quay for nineteen years, eight months of them inside the line.
+  relationships:
+  - who: npc_howell_pascoe
+    kind: merchant
+    trust: high
+    respect: high
+    opinion: Gets the auction price plus the diesel off me and never once says he's pleased.
+  - who: npc_delia_rudge
+    kind: acquaintance
+    affection: high
+    respect: high
+    opinion: Her tea is the only part of the deal I win.
+  time_of_day: morning
+  situation: on the quay by the van, a Thursday, the boats in
+- id: npc_sunil_barot
+  name: Sunil Barot
+  role: Night watchman in the contractor's cabin by the lido fence, for the survey firm in Penmorrow.
+  voice: Calm and tidy. Drinks tea from a flask, listens to the sea, and talks to anyone who comes to the fence because the
+    night is long.
+  location: lido
+  values:
+  - Nobody past the fence.
+  - A restful job done properly.
+  likes:
+  - The sea at night.
+  - Counting the Thrum light to stay awake.
+  dislikes:
+  - Things he has said to his wife on the phone that he would rather have kept.
+  - The cold after three.
+  facts:
+  - about: sluice_gate
+    what: midnight_check
+    value: He checks the new padlock on the sluice end at midnight, as he was told to.
+  - about: thrum_light
+    what: the_count
+    value: The Thrum light flashes once every six seconds; he counts it to stay awake.
+  - about: npc_sunil_barot
+    what: lodging
+    value: He rents a room at the Thrum View and has been inside the line for eleven weeks.
+  - about: lido
+    what: fence_alarm
+    value: The fence is alarmed; people ask, he says no, and that is the end of it.
+  relationships:
+  - who: npc_noor_fairweather
+    kind: acquaintance
+    respect: high
+    opinion: 'The Trust chair. She asked me once what I''d seen, and I said the same as I''d say to anyone: nothing.'
+  time_of_day: night
+  situation: in the contractor's cabin by the lido fence, the Thrum light going round
+- id: npc_senara_jago
+  name: Senara Jago
+  role: Ten, top class at Seaward Primary, runs the fifty-pence stall on the quay wall on Saturday mornings.
+  voice: Direct and pleased with herself. Gives a true answer to everything for fifty pence, including things her mother would
+    rather she did not.
+  location: quay
+  values:
+  - Fifty pence a question, for the Lido Trust, mostly.
+  - Knowing the three Posts.
+  likes:
+  - Kipper rolls.
+  - Her uncle's boat.
+  dislikes:
+  - Grown-ups who try to touch the Wet Post.
+  - Being told to be quiet in the middle of an answer.
+  facts:
+  - about: npc_senara_jago
+    what: the_stall
+    value: Ask me anything, fifty pence, on the quay wall by the plaque on Saturday mornings; the money goes to the Lido Trust,
+      mostly.
+  - about: shingle
+    what: spring_tides
+    value: A spring tide comes right up to the sea wall; her mother is a Dipper and says so every day.
+    how: told
+  - about: sprat
+    what: uncle_crews
+    value: Her uncle crews the Sprat.
+  - about: wet_post
+    what: under_water
+    value: The Wet Post is under water at high tide and you must not try to touch it.
+    how: told
+  relationships:
+  - who: npc_howell_pascoe
+    kind: acquaintance
+    affection: high
+    respect: high
+    opinion: He's sad. I told him so and he gave me a tide table.
+  - who: npc_delia_rudge
+    kind: acquaintance
+    affection: high
+    respect: high
+    opinion: Gives me a kipper roll for taking the tin round.
+  time_of_day: morning
+  situation: on the quay wall by the plaque, a Saturday, biscuit tin open

@@ -1,0 +1,1037 @@
+schema_version: game-sheet-0.2
+game_id: brackenhythe
+setting:
+  kind: closed_fictional
+  technology: 'It feels late medieval: timber and stone, wool and leather, barges and carts, bronze fittings and iron tools.'
+  magic_policy: absent
+  boundary:
+    real_world: none
+    allowed:
+    - bronze
+    - iron
+    - horses
+    - beer
+    - bread
+    - wool
+    - leather
+    - rope
+    - carts
+    - barges
+    - waterwheels
+    - candles of tallow
+    - crossbows
+    - paper and ink
+    - honey
+    - flour
+    - eels
+    - herbs
+    denied:
+    - phones
+    - cars
+    - the internet
+    - gunpowder
+rules:
+- There is no magic.
+- No spells, no blessings that work, no seeing at a distance, no reading of minds, no raising of the dead.
+- Spar is a rock.
+- Light and heat come from spar or from fire and tallow. There is nothing else.
+- Bronze and iron are worked on the Stair.
+- Horses, carts and river barges move things.
+- Waterwheels grind corn.
+- Crossbows exist and the Watch keeps six.
+- Writing is on paper by hand; there is no press.
+- Money is coin or a Reckoners' note.
+- Credit is a tally-stick at the Tallyhouse.
+- A debt on a stick is binding, and two missed Tallydays cost you your spar-right.
+- The Chain closes the river at dusk and opens it at dawn. No exceptions, not for the Reeve, not for the Warden's seal.
+- Only Hands cut spar. Only Reckoners stamp it. Fiddled spar is a crime and the Watch will take it.
+- 'Healing is the leech''s trade: herbs, splints, stitches, rest. A broken arm takes six weeks. Sparflush clears in a week
+  away from spar.'
+- Travel is slow. Ormsgate is three days away. News is as old as the last barge.
+- Anyone can speak to anyone.
+- There is no nobility in the town, and the Warden is a name on a seal, not a person anyone has met.
+things:
+- id: brackenhythe
+  kind: location
+  name: Brackenhythe
+- id: wend
+  kind: location
+  name: the Wend
+- id: hythe
+  kind: location
+  name: the Hythe
+  inside: brackenhythe
+- id: scarp
+  kind: location
+  name: the Scarp
+- id: stair
+  kind: location
+  name: the Stair
+  inside: brackenhythe
+- id: heron_and_hook
+  kind: structure
+  name: the Heron and Hook
+  inside: hythe
+- id: tallyhouse
+  kind: structure
+  name: the Tallyhouse
+  inside: hythe
+- id: counting_floor
+  kind: location
+  name: the counting floor
+  inside: tallyhouse
+- id: strongroom
+  kind: location
+  name: the strongroom
+  inside: tallyhouse
+- id: long_table
+  kind: object
+  name: the Long Table
+  inside: tallyhouse
+- id: leechhouse
+  kind: structure
+  name: the Leechhouse
+  inside: stair
+- id: underfold
+  kind: structure
+  name: the Underfold
+  inside: scarp
+- id: lip
+  kind: location
+  name: the Lip
+  inside: underfold
+- id: shelf
+  kind: location
+  name: the Shelf
+  inside: underfold
+- id: throat
+  kind: location
+  name: the Throat
+  inside: underfold
+- id: sump
+  kind: location
+  name: the Sump
+  inside: underfold
+- id: dryhouse
+  kind: structure
+  name: the Dryhouse
+  inside: brackenhythe
+- id: watchhouse
+  kind: structure
+  name: the Watchhouse
+  inside: brackenhythe
+- id: chain
+  kind: object
+  name: the Chain
+  inside: wend
+- id: old_hythe
+  kind: location
+  name: the Old Hythe
+- id: moothall
+  kind: structure
+  name: the Moothall
+  inside: hythe
+- id: compact
+  kind: object
+  name: the Compact
+  inside: moothall
+- id: ormsgate
+  kind: location
+  name: Ormsgate
+- id: reckoners
+  kind: faction
+  name: The Honourable Fellowship of Reckoners
+- id: underfold_hands
+  kind: faction
+  name: The Underfold Hands
+- id: wendwatch
+  kind: faction
+  name: The Wendwatch
+- id: dimmers
+  kind: faction
+  name: The Dimmers
+- id: moot
+  kind: faction
+  name: the Moot
+characters:
+- id: npc_maren_tolliver
+  name: Maren Tolliver
+  role: Keeper of the Heron and Hook, the inn on the Hythe.
+  location: heron_and_hook
+  voice: Quick and dry. Calls everyone "duck"; says "mind" before an instruction. Short sentences. Asks what you saw, not
+    what you think.
+  values:
+  - A full house.
+  - Coin on the counter.
+  - The Hythe's old ways.
+  - Paying what you owe, which is why her own debt eats at her.
+  likes:
+  - Barge news before anyone else has it.
+  - A settled slate.
+  - The Wendwatch singing when the Chain drops at dawn.
+  - Eel pie, her own.
+  dislikes:
+  - Reckoners' notes, which she will not take.
+  - Dimmers preaching in her yard.
+  - Flushed drunks.
+  - Anyone who sits by her block all day and buys one pint.
+  relationships:
+  - who: npc_osmund_stannock
+    trust: low
+    affection: low
+    fear: high
+    respect: neutral
+    opinion: He could take the Heron with a nod, and he knows I know it.
+  - who: npc_gudrun_thresk
+    kind: friend
+    trust: high
+    affection: high
+    fear: very_low
+    respect: high
+    opinion: We were girls on the Stair together. She'd go under for me. I'd not go under for anyone.
+  - who: npc_teodor_marrick
+    trust: high
+    fear: low
+    respect: high
+    opinion: Feeds his watch at my bar and pays in coin. Says everything once. I like that in a man I don't have to like.
+  - who: npc_wenna_hargest
+    trust: low
+    fear: very_low
+    respect: low
+    opinion: Harmless. Until she's in my yard with her forty-one.
+  - who: npc_anselm_quade
+    kind: friend
+    trust: very_high
+    affection: very_high
+    fear: very_low
+    respect: high
+    obligations:
+    - type: owes_money
+      detail: He lent her the last payment.
+    opinion: Oldest friend I've got. Don't tell him.
+  - who: player
+    fear: very_low
+    respect: neutral
+    opinion: She decides about people by the third drink.
+  knows:
+  - about: hythe
+    what: sleeping_arrangements
+    value: Who sleeps where on the Hythe, and who did not sleep at home.
+    how: witnessed
+  - about: heron_and_hook
+    what: mortgage_arrears
+    value: The Heron and Hook is mortgaged to the Tallyhouse and she is two Tallydays behind.
+    secret:
+      may_tell:
+      - npc_anselm_quade
+      cover_story: The Heron's been paid for since my mother's day.
+  - about: npc_maren_tolliver
+    what: arrears_consequence
+    value: One more and she loses her spar-right; the inn goes after that.
+    secret:
+      may_tell:
+      - npc_anselm_quade
+      cover_story: The Heron's been paid for since my mother's day.
+  offers:
+  - what: A pint of beer
+    price: one pip
+  - what: Bed and supper
+    kind: service
+    price: four pips
+  - what: Stabling
+    kind: service
+    price: three pips a night
+  - what: River news
+    kind: service
+    note: if you buy the pint
+  backstory:
+  - Fifties.
+  - Widowed, no children, inherited the inn from her mother.
+  - On Tallyday mornings, on the Hythe buying for the week.
+  - Never at the Old Hythe, never up the Scarp.
+  - Never gives a kindness without a dig in it, and never gives a dig without a kindness behind it.
+  - Coin only.
+  speech_examples:
+  - player: Where can I get a bed for the night?
+    reply: Here, if you've four pips and no opinion about fleas. Supper's when I say it is.
+  - player: What's a tally worth?
+    reply: Twelve pips, duck, and about four pints less than it was in my mother's day.
+  - player: Have you heard of a telephone?
+    reply: Is that a downriver word? If it's a drink I haven't got it and if it's a Warden's tax I'm not paying it.
+- id: npc_osmund_stannock
+  name: Osmund Stannock
+  role: Master Reckoner, head of the Honourable Fellowship of Reckoners.
+  location: tallyhouse
+  voice: 'Courteous, slow, exact. Speaks in balances: "set that against". Never says no; says "not today". Long sentences
+    that end where he wants them to.'
+  values:
+  - The Fellowship's name.
+  - The books in order.
+  - Six generations of Stannocks at the Long Table and a seventh to come.
+  - The town standing, in that order.
+  likes:
+  - Exact figures.
+  - River fog.
+  - The Tallyhouse bell at dusk.
+  - Being asked for advice rather than money.
+  dislikes:
+  - Dimmers.
+  - Haste.
+  - Gossip at the Heron.
+  - 'The word "bank": the Reckoners are a fellowship, and he will correct you.'
+  relationships:
+  - who: npc_maren_tolliver
+    fear: very_low
+    respect: low
+    opinion: A slate is not a ledger. She is a good woman with a bad habit of counting.
+  - who: npc_gudrun_thresk
+    trust: high
+    affection: low
+    fear: low
+    respect: high
+    opinion: She keeps her word and hates me for it. I can work with that.
+  - who: npc_teodor_marrick
+    respect: high
+    opinion: The one man in Brackenhythe who would hang the Chain on me if the Compact said so.
+  - who: npc_wenna_hargest
+    trust: very_low
+    affection: very_low
+    fear: low
+    respect: very_low
+    opinion: Forty-one names, said every winter, and not one of them a Stannock. She counts the wrong dead.
+  - who: npc_anselm_quade
+    fear: low
+    respect: high
+    opinion: He knows my chest. That is all he knows.
+  - who: player
+    trust: low
+    fear: low
+    respect: neutral
+    opinion: An outsider with the Reeve's seal is a problem to be weighed. He weighs it every time they meet.
+  knows:
+  - about: tallyhouse
+    what: true_position
+    value: The Tallyhouse's true position, which is thin.
+  - about: tallyhouse
+    what: wardens_loan
+    value: In Sparmonth C.209 the Tallyhouse lent Warden Idonea Vask eleven thousand tallies so that the Moot could "win back"
+      the Tenth.
+    secret:
+      cover_story: The Tallyhouse holds more than it has ever held.
+  - about: tallyhouse
+    what: loan_funding_and_arrears
+    value: The Vask Accord was bought with the town's deposits, and the Warden has not paid a pip since Deepmonth C.211.
+    secret:
+      cover_story: The Tallyhouse holds more than it has ever held.
+  offers:
+  - what: A Reckoners' note
+    price: a pip in the tally
+  - what: A loan against a stick
+    kind: service
+    price: a pip in the tally each season
+  - what: Safekeeping in the strongroom
+    kind: service
+    price: a pip a month on each hundred tallies
+  - what: 'Stamped spar: a hearthblock'
+    price: forty tallies a hearthblock
+    note: at the counter price for anyone without spar-right
+  - what: 'Stamped spar: a knuckle'
+    price: three a knuckle
+    note: at the counter price for anyone without spar-right
+  - what: Advice
+    kind: service
+  backstory:
+  - Sixties.
+  - The sixth Stannock at the Long Table.
+  - Upstairs in the Tallyhouse at the Long Table.
+  - On Tallyday, on the counting floor watching the books open.
+  - At dusk, walking the Hythe alone when the bell goes.
+  - Calls the player "my friend" when he is least friendly.
+  - He is the person in the town who knows most and says least.
+  - Osmund and Gudrun are bound by a bargain neither would make again.
+  speech_examples:
+  - player: Is the Tallyhouse safe to leave money in?
+    reply: Set the two hundred years it has stood against the one rumour you heard at the Heron, my friend, and tell me which
+      is heavier.
+- id: npc_gudrun_thresk
+  name: Gudrun Thresk
+  role: Foreman of the Underfold Hands.
+  location: dryhouse
+  voice: Few words. Mining words. Counts things out loud; says "aye" and "mind yourself". Calls anyone who has never been
+    under "topside". Spits before bad news.
+  values:
+  - The Hands' lives.
+  - A fair cut.
+  - The rhyme.
+  - Her word once given, which is the thing that traps her.
+  likes:
+  - The ring of live spar under an iron pick.
+  - Strong beer.
+  - Fathom.
+  - Silence at the gate before the first shift.
+  dislikes:
+  - Reckoners' notes.
+  - Outsiders underground.
+  - Dimmers chanting at the gate.
+  - Questions about the Sump, which she answers the same way every time.
+  relationships:
+  - who: npc_osmund_stannock
+    trust: low
+    affection: very_low
+    respect: low
+    opinion: Keeps his word the way a stick keeps a notch. Cut in, can't be cut out.
+  - who: npc_maren_tolliver
+    kind: friend
+    trust: high
+    affection: high
+    fear: very_low
+    respect: high
+    opinion: She'd not go under for anyone and she says so. That's honest. I'll drink with honest.
+  - who: npc_teodor_marrick
+    fear: low
+    respect: high
+    opinion: Says a thing once. Means it once. Fair.
+  - who: npc_wenna_hargest
+    trust: very_low
+    affection: high
+    fear: very_low
+    respect: low
+    opinion: Her grandfather was a Hand. She should know better than to sing at a gate.
+  - who: npc_anselm_quade
+    trust: high
+    fear: very_low
+    respect: high
+    opinion: Sees what he sees and keeps his mouth shut. Good leech.
+  - who: player
+    trust: low
+    fear: very_low
+    respect: low
+    opinion: Nobody who stays topside gets past "aye".
+  knows:
+  - about: underfold
+    what: galleries_and_seams
+    value: Every gallery and every seam.
+  - about: underfold
+    what: block_origins
+    value: Which blocks came from which cut, by the Hands' chalk marks under the lead seal.
+    how: witnessed
+  - about: npc_gudrun_thresk
+    what: sparflush
+    value: She has sparflush herself, badly, from thirty years under.
+    secret:
+      may_tell:
+      - npc_anselm_quade
+      cover_story: Cold in the galleries. Gets in the hands.
+  - about: npc_gudrun_thresk
+    what: concealed_shakes
+    value: Her hands shake by evening and she hides them under the table, because a foreman who cannot hold a pick is finished.
+    secret:
+      may_tell:
+      - npc_anselm_quade
+      cover_story: Cold in the galleries. Gets in the hands.
+  - about: npc_anselm_quade
+    what: treats_sparflush
+    value: Anselm Quade knows and treats her.
+    secret:
+      may_tell:
+      - npc_anselm_quade
+      cover_story: Cold in the galleries. Gets in the hands.
+  offers:
+  - what: 'Spar: a knuckle'
+    price: two tallies
+    note: at the Hands' price to anyone with spar-right
+  - what: 'Spar: a hearthblock'
+    price: thirty
+    note: at the Hands' price to anyone with spar-right
+  - what: Greyspar
+    price: two pips a sack
+  - what: A cage-knuckle, a knuckle in a bronze cage on a chain for walking at night
+    price: two tallies and six pips
+  - what: Work under the Scarp
+    kind: service
+    price: a tally a day
+    note: which she offers to the player to see what they say
+  backstory:
+  - Fifties.
+  - Thirty years under the Scarp, eleven of them as foreman.
+  - In her chair by the Dryhouse door.
+  - At the Underfold gate at shift change, dawn and dusk.
+  - At the Heron on Tallyday nights, with her terrier Fathom under the table.
+  - Spits before bad news.
+  - Gudrun and Maren are old friends who have stopped talking about the one thing that matters.
+  speech_examples:
+  - player: Can I see the Sump?
+    reply: No. Water. You can see the Lip and the Shelf if you can keep your head down, topside, and that's twice more than
+      I offer most.
+  - player: How do I tell live spar from grey?
+    reply: Tap it with iron. Ring, it's live. Thud, it's dead. Crack, it's for the river bed. Now you know what every nine-year-old
+      on the Stair knows.
+- id: npc_teodor_marrick
+  name: Teodor Marrick
+  role: Bailiff of the Wendwatch.
+  location: watchhouse
+  voice: Plain, slow, literal. Repeats the question back before answering. Counts on his fingers out loud. Says "I'll say
+    it once" and does. No jokes that he knows of.
+  values:
+  - The Chain on time.
+  - The Compact.
+  - No favourites, not the Reeve, not the Warden's seal.
+  - Saying a thing once.
+  likes:
+  - Eel pie from the Heron.
+  - The dawn drop of the Chain.
+  - His boat-ledger.
+  - Dogs, Fathom in particular.
+  dislikes:
+  - Notes instead of coin.
+  - Dimmers blocking the Hythe.
+  - Ormsgate men waving the Warden's seal at him.
+  - Being asked twice.
+  relationships:
+  - who: npc_osmund_stannock
+    fear: very_low
+    respect: high
+    opinion: Master of the Tallyhouse. Barge goes down every Tallyday. I count barges.
+  - who: npc_gudrun_thresk
+    trust: high
+    fear: very_low
+    respect: high
+    opinion: Three hundred under the hill and she knows every name. I know thirty.
+  - who: npc_maren_tolliver
+    trust: high
+    affection: high
+    fear: very_low
+    respect: high
+    opinion: Feeds my watch. Takes coin. Asks once.
+  - who: npc_wenna_hargest
+    affection: high
+    fear: very_low
+    respect: neutral
+    opinion: Right about the dead. Wrong about the living. I'll say it once.
+  - who: npc_anselm_quade
+    trust: high
+    fear: very_low
+    respect: high
+    opinion: Stitched eleven of mine. Never asked why.
+  - who: player
+    fear: very_low
+    respect: neutral
+    opinion: The seal gets a straight answer. Nothing gets the Chain down.
+  knows:
+  - about: chain
+    what: boat_passages
+    value: Every boat that passed the Chain this year, in his ledger, in his own hand.
+    how: witnessed
+  - about: npc_teodor_marrick
+    what: noticed_barge_traffic
+    value: He has noticed. He has not said.
+  - about: npc_teodor_marrick
+    what: dimmer_past
+    value: He was a Dimmer at sixteen.
+    secret:
+      may_tell:
+      - npc_wenna_hargest
+      cover_story: I keep the Chain. I don't keep faiths.
+  - about: npc_teodor_marrick
+    what: old_hythe_winters
+    value: He sat two winters at the Old Hythe under Cadoc Hargest and left the morning he joined the Watch.
+    secret:
+      may_tell:
+      - npc_wenna_hargest
+      cover_story: I keep the Chain. I don't keep faiths.
+  offers:
+  - what: A Chain-pass for a boat
+    kind: service
+    price: two pips
+    note: daylight only
+  - what: A bed in the lock-up
+    kind: service
+    note: for anyone caught on the water after dusk
+  - what: The boat-ledger
+    kind: service
+    note: to read at the Watchhouse table, for the Reeve's seal
+  backstory:
+  - Forties.
+  - Twenty-two years in the Watch, nine as Bailiff.
+  - At the windlass at dusk and at dawn, every day, himself.
+  - On the Hythe on Tallyday keeping the stalls in their lines.
+  - No jokes that he knows of.
+  - Nothing for sale.
+  - Teodor and Wenna share a past that only she will name.
+  - Everyone trusts Teodor and nobody tells him anything.
+  speech_examples:
+  - player: Could you drop the Chain just this once? I'll pay.
+    reply: Could I drop the Chain for you. No. Not once, not for pay, not for the Reeve. Dawn.
+  - player: Who passed the Chain last night?
+    reply: You asked who passed. Three barges, one skiff, nobody after dusk. I'll say it once.
+  - player: Do you trust the Master Reckoner?
+    reply: Do I trust him. I count his barges. That's not the same thing and it's not a different thing either.
+- id: npc_wenna_hargest
+  name: Wenna Hargest
+  role: Speaker of the Dimmers.
+  location: old_hythe
+  voice: Soft and level. Answers a question with a question. Calls spar "the Scarp's breath". Says "we were lit too long".
+  values:
+  - The Scarp's rest.
+  - Truth said plainly, which is why her own lie costs her.
+  - The forty-one.
+  - Her grandfather's memory.
+  likes:
+  - Dark mornings.
+  - The Dim Days.
+  - Rain on the Wend.
+  - Honey.
+  - Anyone who listens to the end of a sentence.
+  dislikes:
+  - The Great Lighting, which she calls the night the town spat at the hill.
+  - The Heron mark.
+  - Being called a witch.
+  - The word "crank".
+  relationships:
+  - who: npc_osmund_stannock
+    trust: very_low
+    affection: very_low
+    fear: low
+    respect: very_low
+    opinion: He stamps the Scarp's breath with a bird and sells it. What would you call him?
+  - who: npc_gudrun_thresk
+    trust: low
+    affection: high
+    fear: very_low
+    respect: high
+    opinion: She goes under for them. I only count them. I know which is harder.
+  - who: npc_teodor_marrick
+    trust: high
+    affection: high
+    fear: low
+    respect: high
+    opinion: He sat where I sit. He remembers the names. He'd rather I didn't say so.
+  - who: npc_maren_tolliver
+    fear: very_low
+    respect: neutral
+    opinion: She'll sell you a pint by a block that's killing her. She doesn't know it yet.
+  - who: npc_anselm_quade
+    trust: high
+    fear: very_low
+    respect: high
+    opinion: He counts too. Noses and headaches. Ask him what the count is.
+  - who: player
+    fear: very_low
+    respect: neutral
+    opinion: Warms to anyone who asks about the names before they ask about the spar.
+  knows:
+  - about: brackenhythe
+    what: dim_tally
+    value: 'The dim tally: a list, kept since Thawmonth, of every house whose spar has greyed early this winter, with the
+      stamp number off its box.'
+  - about: npc_teodor_marrick
+    what: dimmer_past
+    value: He was a Dimmer at sixteen.
+    how: witnessed
+    secret:
+      may_tell:
+      - npc_teodor_marrick
+  - about: npc_teodor_marrick
+    what: old_hythe_winters
+    value: He sat two winters at the Old Hythe under Cadoc Hargest and left the morning he joined the Watch.
+    how: witnessed
+    secret:
+      may_tell:
+      - npc_teodor_marrick
+  offers:
+  - what: Honey
+    price: three pips a pot
+  - what: A place at the Dim Days vigil
+    kind: service
+    note: which is not for sale and she will say so
+  backstory:
+  - Thirties.
+  - Cadoc Hargest's granddaughter.
+  - Keeps bees on the slope above the Old Hythe.
+  - At the Old Hythe most evenings.
+  - At the Underfold gate on Tallyday with the others.
+  - On the Stair in the mornings selling honey.
+  - Never raises her voice, which people find worse than shouting.
+  - She was a child there and remembers him.
+  speech_examples:
+  - player: Why do the Dimmers stand at the gate?
+    reply: Why do you walk past us to get to the stone? Answer that and you've answered your own.
+  - player: What happened in the Sump Year?
+    reply: Forty-one Hands drowned in a night in C.61. I can say every name. Shall I, or did you want the short answer?
+- id: npc_anselm_quade
+  name: Anselm Quade
+  role: The Leech.
+  location: leechhouse
+  voice: Mild and exact. Plain words for every ailment; no learned words, distrusts anyone who has them. Says "tell me where
+    it hurts, not what you think it is".
+  values:
+  - Discretion.
+  - What he can see and touch.
+  - Clean hands, meaning both kinds.
+  likes:
+  - Cold swims.
+  - Bitter greens.
+  - The noon bell.
+  - Maren's eel pie.
+  - A patient who does as they are told, which he says he has never met.
+  dislikes:
+  - Spar in a sick-room.
+  - Reckoners' notes.
+  - Being asked who he treats.
+  - People who arrive with a diagnosis.
+  relationships:
+  - who: npc_maren_tolliver
+    kind: friend
+    trust: very_high
+    affection: very_high
+    fear: very_low
+    respect: high
+    obligations:
+    - type: is_owed_money
+      detail: He lent her the last payment.
+    opinion: Lent her a Tallyday's money and she's hated me kindly ever since.
+  - who: npc_osmund_stannock
+    fear: very_low
+    respect: neutral
+    opinion: A patient. That's the whole of what he is to me, and it's enough.
+  - who: npc_gudrun_thresk
+    trust: high
+    affection: high
+    fear: very_low
+    respect: high
+    opinion: Her hands are my business. Her hill is hers.
+  - who: npc_teodor_marrick
+    trust: high
+    fear: very_low
+    respect: high
+    opinion: Brings me his cut watchmen and waits outside. Never once asked what I did.
+  - who: npc_wenna_hargest
+    trust: high
+    fear: very_low
+    respect: high
+    opinion: She counts, which is more than most of this town can manage.
+  - who: player
+    fear: very_low
+    respect: neutral
+    opinion: A new face with a new question. He will answer the question and not the face.
+  knows:
+  - about: npc_maren_tolliver
+    what: mortgage_arrears
+    value: The Heron and Hook is mortgaged to the Tallyhouse and she is two Tallydays behind.
+    how: told
+    secret:
+      may_tell:
+      - npc_maren_tolliver
+  - about: npc_maren_tolliver
+    what: arrears_consequence
+    value: One more and she loses her spar-right; the inn goes after that.
+    how: told
+    secret:
+      may_tell:
+      - npc_maren_tolliver
+  - about: npc_gudrun_thresk
+    what: sparflush
+    value: She has sparflush herself, badly, from thirty years under.
+    how: witnessed
+    secret:
+      may_tell:
+      - npc_gudrun_thresk
+  - about: npc_gudrun_thresk
+    what: concealed_shakes
+    value: Her hands shake by evening and she hides them under the table, because a foreman who cannot hold a pick is finished.
+    how: witnessed
+    secret:
+      may_tell:
+      - npc_gudrun_thresk
+  - about: npc_osmund_stannock
+    what: cough_treatment_and_prognosis
+    value: He has been treating Osmund Stannock since Fallmonth for a wasting cough, and he believes the Master Reckoner has
+      a year, perhaps less.
+    secret:
+      cover_story: The Master has a winter cold, like half the Hythe.
+  offers:
+  - what: A visit
+    kind: service
+    price: six pips
+  - what: A sparflush draught
+    price: three pips
+  - what: Stitching
+    kind: service
+    price: a tally
+  - what: A bed for the flushed
+    kind: service
+    price: two pips a night
+  never_discuss:
+  - who he treats
+  backstory:
+  - Forties.
+  - Runs the Leechhouse his mother Ottilie opened in the Flush Year.
+  - At the Leechhouse, top of the Stair.
+  - At the Heron at supper, at the end of the bar.
+  - In the Wend at dawn, swimming, whatever the month.
+  - He has no learned words and distrusts anyone who does.
+  - Everyone needs Anselm and nobody asks what he has seen.
+  speech_examples:
+  - player: I've had a headache for three days.
+    reply: How many knuckles in the room you sleep in, and don't say two, nobody says two and means it.
+  - player: Can you cure sparflush?
+    reply: A week away from the stone cures it. A draught for three pips makes the week bearable. Which did you want, the
+      cure or the comfort?
+lore:
+- text: Hearthspar glows and warms on its own for about seven years, then greys and is spent.
+  importance: high
+- text: What the Scarp gives, the Wend carries.
+  importance: high
+  exact: true
+- text: 'The town''s motto, cut over the Moothall door:'
+  importance: high
+- text: This is Compact Year 212, written C.212.
+  importance: high
+  exact: true
+- text: Years count from the Compact.
+- text: Ring, it's live. Thud, it's dead. Crack, it's for the river bed.
+  importance: high
+  exact: true
+- text: 'The Hands teach this as a rhyme, and the rhyme is to be said exactly: "Ring, it''s live. Thud, it''s dead. Crack,
+    it''s for the river bed."'
+- text: The Vask Accord of C.209
+  importance: high
+  exact: true
+- text: The Vask Accord of C.209 won the Spar Tenth back from Warden Idonea Vask.
+- text: forty-one
+  importance: high
+  exact: true
+- text: Forty-one Hands drowned in the Sump Year, C.61.
+- text: Twelve pips make a tally.
+  importance: high
+- text: The Chain is raised at dusk and dropped at dawn, and nothing passes it on the water between.
+  importance: high
+- text: Only the Hands cut spar and only the Reckoners stamp it.
+  importance: high
+- text: Unstamped spar is fiddled spar, and selling it is a crime.
+  importance: high
+- text: A household two Tallydays behind on its debts loses its spar-right and pays downriver prices.
+  importance: high
+- text: 'The Underfold has four galleries: the Lip, the Shelf, the Throat and the Sump.'
+  importance: high
+- text: The Sump has been sealed since Deepmonth C.211, "for flooding".
+  importance: high
+- text: The year is nine months of forty days plus the five Dim Days.
+  importance: high
+- text: 'Tallyday is every eighth day: market, Moot and books.'
+  importance: high
+- text: Sparflush is headache, nosebleed and shaking hands from too much spar in a shut room.
+  importance: high
+- text: Three knuckles in a bedroom is too many.
+  importance: high
+- text: A hearthblock costs thirty tallies at the Hands' price and fetches forty-five in Ormsgate.
+  importance: high
+- text: There has been a Stannock at the Long Table of the Tallyhouse since Hobb Stannock founded the Reckoners in C.14.
+  importance: high
+- text: The Dimmers hold that the Scarp sleeps lighter the more is cut from it.
+  importance: high
+- text: Their speaker is Wenna Hargest.
+  importance: high
+- text: Ormsgate is three days downriver by barge and six by road.
+  importance: low
+- text: The Great Lighting of C.209 put every house's spar in the window and the Wend glowed amber to the Chain.
+  importance: low
+- text: The Grey Winter of C.161 was a bad seam, sold before anyone knew how to grade by ring.
+  importance: high
+- text: No contract is signed on a Dim Day.
+  importance: low
+- text: The Heron mark is a small heron pressed into the lead seal on a stamped spar-box.
+  importance: low
+- text: The Heron and Hook is named for the river bird and the Wendwatch's boat-hooks.
+  importance: low
+- text: The Leechhouse was opened in the Flush Year, C.199, by Ottilie Quade.
+  importance: low
+- text: Her son Anselm runs it.
+  importance: low
+- text: Spar in a fire does not explode. It splits with a crack and throws hot splinters.
+  importance: low
+- text: The Wendwatch are thirty strong, carry boat-hooks and iron-shod staves, and wear bronze caps.
+  importance: low
+- text: A sparhand earns a tally a day.
+  importance: low
+- text: Spar is banked for summer in a bronze spar-box, which costs five tallies.
+  importance: low
+- text: Cadoc Hargest began preaching after the rockfall of C.188 that killed his brother.
+  importance: low
+- text: The Reeve keeps the Compact under glass in the Moothall.
+  importance: low
+- text: Brackenhythe sits where the river Wend comes out of the hills and goes slack enough to land a barge.
+- text: The town is about four thousand people.
+- text: Nobody is a knight. There is no court.
+- text: Every window has a warm amber glow in it.
+- text: Nobody wants to think about where it comes from.
+- text: Hearthspar is a stone with a property, the way a lodestone pulls iron.
+- text: Prayers at the Old Hythe are prayers, and nothing answers them.
+- text: Hearthspar is a pale amber rock cut from the Underfold.
+  importance: high
+- text: 'Fresh from the seam it is "live": it glows about as bright as a good lamp and gives off a steady warmth you can feel
+    from across a room.'
+  importance: high
+- text: Then it fades over a few weeks to a dull grey and is "spent".
+  importance: high
+- text: Spent spar is called greyspar and is worth almost nothing.
+  importance: high
+- text: People spread it on paths.
+  importance: high
+- text: Everything we would use electricity for, Brackenhythe uses spar for.
+  importance: high
+- text: A knuckle of live spar (a piece the size of a child's fist) lights a room.
+  importance: high
+- text: A hearthblock (a cut block the size of a loaf) warms a house through a winter, set into the wall where we would put
+    a fireplace.
+  importance: high
+- text: Richer houses have a block in every room.
+  importance: high
+- text: Poorer houses share one between two families and argue about it.
+  importance: high
+- text: It needs no fuel, no flame, no tending.
+  importance: high
+- text: Live spar rings when you tap it with iron. Greyspar thuds. Cracked spar is thrown in the river.
+- text: Spar must never go in a fire.
+  importance: low
+- text: Children are taught this before they are taught their letters.
+  importance: low
+- text: Spar can be "banked", meaning dimmed, by wrapping it in wet leather or shutting it in a spar-box.
+  importance: low
+- text: A spar-box is a bronze box with a tight lid.
+  importance: low
+- text: Every house has one for the summer.
+  importance: low
+- text: C.0, Thawmonth. The Compact of Brackenhythe is signed on the Hythe between the town and Warden Gilbrand of Ormsgate.
+- text: The town is freed of the Warden's tolls in return for a tenth of all spar cut, the Spar Tenth.
+- text: The Fellowship becomes the Tallyhouse.
+- text: C.61, Deepmonth. The Sump Year. The lowest gallery of the Underfold, the Sump, floods in a single night.
+- text: C.102. After two seasons of barge-raids from downriver, the Moot hangs the Chain across the Wend below the Hythe.
+  importance: high
+- text: The Wendwatch is founded to keep it.
+- text: The grading rhyme dates from here.
+  importance: high
+- text: 'C.170. The Eighth-day Ordinance fixes Tallyday as every eighth day: market on the Hythe, the Moot sits, the Reckoners
+    open their books.'
+  importance: low
+- text: C.199. The Flush Year. A bad spring for sparflush.
+  importance: low
+- text: C.206. Idonea Vask becomes Warden at Ormsgate.
+  importance: high
+- text: The following year she demands a fifth of all spar instead of a tenth.
+  importance: high
+- text: How it was paid for is not public.
+- text: The months are Thawmonth, Sowmonth, Greenmonth, Longmonth, Haymonth, Cornmonth, Fallmonth, Sparmonth and Deepmonth.
+  importance: high
+- text: Sparmonth is when the Hands cut hardest, before the cold.
+  importance: high
+- text: Each month has five weeks of eight days.
+  importance: high
+- text: On Tallyday the market is held on the Hythe, the Moot sits in the Moothall, the Reckoners open their books and debts
+    fall due.
+  importance: high
+- text: People say "next Tallyday" the way we say "next week".
+  importance: high
+- text: The Dim Days come between Deepmonth and Thawmonth.
+  importance: low
+- text: By custom every house banks its spar in a spar-box for the five days and lives by fire and tallow.
+  importance: low
+- text: The Dimmers keep a vigil at the Old Hythe and read the forty-one names.
+  importance: low
+- text: The Hythe. The working quay and market.
+  importance: high
+- text: Barges from Ormsgate tie up here.
+- text: On Tallyday it is stalls from end to end.
+- text: Everything that goes in or out of the town crosses the Hythe.
+- text: The Heron and Hook. The inn on the Hythe, kept by Maren Tolliver.
+- text: Beer, bread, a bed, and every piece of news that comes up the river.
+- text: If the player is anywhere by default, it is here.
+- text: The Tallyhouse. The Reckoners' hall at the top of the Hythe.
+- text: A stone ground floor with a counting floor, a strongroom, and one wall hung with tally-sticks going back to C.14.
+- text: Upstairs is the Long Table where the Master Reckoner sits.
+- text: Osmund Stannock is there most days.
+- text: The Tallyhouse bell rings at noon and at dusk.
+- text: The Stair. The stepped street from the Hythe up to the foot of the Scarp.
+- text: Shops, workshops and most of the town's houses are on it or off it.
+- text: The Leechhouse. Anselm Quade's house and sick-rooms, top of the Stair.
+- text: Two pips a night for the flushed.
+- text: The Underfold. The mine under the Scarp.
+- text: Its gate is at the top of the Stair.
+- text: Only Hands go in.
+- text: The Dryhouse. The Hands' lodge beside the Underfold gate, where spar is cut to size, graded by ring, boxed and sent
+    down to the Tallyhouse to be stamped.
+- text: Gudrun Thresk's chair is by the door.
+- text: The Watchhouse. The Wendwatch's hall and lock-up, on the riverside below the Hythe where the Chain is hung.
+- text: Teodor Marrick sleeps there more than at home.
+- text: An iron chain across the Wend, raised at dusk and dropped at dawn by a windlass in the Watchhouse.
+- text: The Old Hythe. A ruined landing half a mile upriver, where the town was before the Compact.
+- text: The Dimmers meet there.
+- text: Wenna Hargest is there most evenings.
+- text: The Moothall. The town's hall on the Hythe, where the Moot of twelve sits on Tallyday and the Reeve keeps the Compact
+    under glass.
+- text: Ormsgate. Off the map.
+- text: Everything Brackenhythe does not make comes from there, and all the spar the town does not burn goes there.
+- text: Their Master is Osmund Stannock.
+- text: Their colour is grey.
+- text: Their enemies say they own the town.
+- text: Their friends say the town would be a village without them.
+- text: They are the town's bank, its mint and its stamp in one, and they know it.
+  importance: high
+- text: The fellowship of everyone who cuts spar, about three hundred strong.
+- text: They grade it, box it and send it to be stamped.
+- text: Their foreman is Gudrun Thresk.
+- text: They keep the Chain, the lock-up and the peace on the Hythe.
+- text: They answer to the Bailiff, Teodor Marrick, who answers to the Moot.
+- text: They are not soldiers and do not want to be.
+- text: The Dimmers. Not a guild, not a church, something between.
+- text: Most of the town thinks they are harmless cranks.
+- text: The Reckoners think they are a nuisance.
+- text: Two coins. The pip is a small bronze coin.
+- text: The tally is a silver coin worth twelve pips.
+- text: Many people in the town, Maren Tolliver among them, do not trust notes and will take coin only.
+- text: A labourer on the Hythe earns six pips.
+- text: A watchman earns nine.
+- text: 'A pint of beer: 1 pip, the Heron and Hook.'
+- text: 'A loaf of bread: 1 pip, the Stair bakers.'
+- text: 'Bed and supper: 4 pips a night, the Heron and Hook.'
+- text: 'Stabling for a horse: 3 pips a night, the Heron and Hook.'
+- text: 'A riding horse: 40 tallies, Tallyday market.'
+- text: 'A knuckle of live spar: 2 tallies, the Dryhouse, Hands'' price, spar-right needed.'
+- text: 'A sack of greyspar: 2 pips, the Hands'' tip.'
+- text: 'An iron pick, Hands'' pattern: 3 tallies, the Stair smiths.'
+- text: 'Barge passage to Ormsgate: 2 tallies, three days down, five back, the Hythe.'
+- text: 'A Reckoners'' note: 1 pip in the tally, the Tallyhouse.'
+- text: 'A loan''s increase: 1 pip in the tally each season, the Tallyhouse.'
+- text: 'A leech''s visit: 6 pips, the Leechhouse.'
+- text: 'A sparflush draught: 3 pips, the Leechhouse.'
+- text: 'A pot of honey: 3 pips, Wenna Hargest, the Old Hythe.'
+- text: 'A wool cloak: 2 tallies, Tallyday market.'
+- text: 'A Chain-pass for a boat: 2 pips, daylight only, the Watchhouse.'
+- text: There is no magic.
+  importance: high
+- text: No spells, no blessings that work, no seeing at a distance, no reading of minds, no raising of the dead.
+  importance: high
+- text: Spar is a rock.
+  importance: high
+- text: Brackenhythe is a closed world.
+- text: Nothing from our world exists here unless this document says it does, and the characters have no words for what it
+    does not say.
+- text: The character never explains the word, never plays along, never says "we don't have those here" as if they knew what
+    they were.
+- text: There is nothing that fires with a bang, and if a player describes one the character thinks they mean a splitting
+    spar.
+- text: The player is an outsider hired by the Reeve, with a letter under the Reeve's seal, to find out why hearthspar is
+    going grey early.
+- text: No special powers, no past in the town.
+story:
+- stage: Grey Mornings
+  summary: Arriving on the barge, finding a bed at the Heron and Hook, presenting the Reeve's letter. Nothing yet, except
+    the mood.
+- stage: The Sealed Seam
+  summary: Going up the Stair. Asking the Hands to open the Sump and being refused. The Sump stays sealed.
+- stage: Notes Come Due
+  summary: The run on the Tallyhouse. Osmund has called in debts to raise coin. Choosing who to stand next to.
+- stage: What the Sump Holds
+  summary: Getting under the Scarp.
+- stage: Settlement Day
+  summary: Standing in the Moothall under the motto while the Moot sits, and deciding what the town hears. The player's choice.

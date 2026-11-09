@@ -1,0 +1,32 @@
+# SpellSpeak Sigil 4B: the settings its game LoRAs were measured with.
+name: sigil-4b
+title: SpellSpeak Sigil 4B
+base:
+  repo: jptaylor/spellspeak-sigil-4b
+  revision: 8f848d665798aff9232c5a7199576213fe406ec9
+  tag: rc1.1
+  sha256:
+    model.safetensors: 01188f690bd2649d221105c82de9485e15c736a5dba218061c1d64e689c976ad
+chat_format: gemma4-instruct
+train:
+  rank: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules: all-linear
+  learning_rate: 2.0e-4
+  epochs: 3
+  batch_size: 1
+  grad_accumulation: 16
+  max_length: 3072
+  warmup_steps: 10
+  gpu: H100
+export:
+  quant: [Q4_K_M]
+  embeddings: q4_k
+  llama_cpp_build: b11146
+  gpu: L4
+measured:
+  # One run: 5,355 examples, 3 epochs, 4,522 seconds of training on one H100.
+  train_seconds_per_example_epoch: 0.2815
+  peak_vram_gb: 34.9
+  gpu: H100

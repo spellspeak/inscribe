@@ -1,0 +1,9 @@
+# The example game brackenhythe. Sheet and lore are complete. Run `inscribe check` here.
+game: brackenhythe
+base: [glyph-2b, sigil-4b]
+
+backend:
+  name: modal
+
+budget:
+  max_usd: 80

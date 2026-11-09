@@ -1,0 +1,17 @@
+# Characters your game makes up at run time. They are not in the game sheet and are never trained on.
+# The checks hand each one to the model in the prompt alone and ask it about your world, to see that a character
+# the model has never met still knows the lore, and never says a core character's secret.
+# Delete this file if your game has none.
+npcs:
+  - id: npc_wren
+    name: Wren
+    role: A carter who brings flour up from the river twice a week.
+    voice: Talks fast and laughs at her own jokes.
+    location: crooked_lantern
+    likes: [A dry road.]
+    facts:
+      - {about: npc_wren, what: route, value: She drives the river road to Fenwick every Tuesday and Friday.}
+    relationships:
+      - {who: npc_tomas, kind: customer, trust: high, opinion: Pays on the nail and never waters the ale.}
+    time_of_day: evening
+    situation: at the bar of the Crooked Lantern, her cart outside

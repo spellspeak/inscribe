@@ -1,0 +1,1041 @@
+# shalecombe: the game sheet, drafted from the prose in lore/ by a large language model and then corrected.
+# Defaults are left out (neutral levels, normal importance, exact false, available true).
+schema_version: game-sheet-0.2
+game_id: shalecombe
+setting:
+  kind: contemporary
+  technology: Phones work, cars work, the internet is slow but there.
+  magic_policy: restricted
+  boundary:
+    real_world: all
+    denied:
+    - telling a lie out loud
+    - bluffing at cards
+    - surprise parties
+    - sales patter
+    - acting a part you do not believe
+    - a spoken alibi
+    - real brand names
+    - real chains
+    - real networks
+    - real apps
+    - real newspapers
+    - real people
+rules:
+- This is the real world, now. Everything true outside Shalecombe is true inside it, except the one thing.
+- Nobody inside the line can say what they believe to be false. Nobody has ever managed it, not once, not for a dare, not
+  drunk.
+- Writing can lie. The town knows it and trusts nothing it reads from a Shalecombe number.
+- Nobody knows why, and nobody in the town will claim to.
+- The Telling is never explained in play and never lifts. There is no cure, no ritual, no scientist with an answer.
+- Everything else is ordinary. Cars go. Phones ring. The bus is late. The tide comes in. Spring tides cover the Shingle to
+  the sea wall.
+- The quay is closed to cars from six in the evening. The lido is fenced and the fence is alarmed.
+- The Thrum light flashes once every six seconds. Boats inside the line keep their radio honest.
+things:
+- id: shalecombe
+  kind: location
+  name: Shalecombe
+- id: shalecombe_parish_boundary
+  kind: location
+  name: Shalecombe parish boundary
+- id: quay
+  kind: structure
+  name: The Quay
+  inside: shalecombe
+- id: quay_plaque
+  kind: object
+  name: the plaque on the quay head
+  inside: quay
+- id: quay_row
+  kind: location
+  name: Quay Row
+  inside: shalecombe
+- id: fish_auction_shed
+  kind: structure
+  name: the fish auction shed
+  inside: quay
+- id: quay_office
+  kind: structure
+  name: the quay office
+  inside: quay
+- id: kipper_house
+  kind: structure
+  name: The Kipper House
+  inside: quay
+- id: kipper_house_sign
+  kind: object
+  name: The Kipper House sign
+  inside: kipper_house
+- id: combe_lane
+  kind: location
+  name: Combe Lane
+  inside: shalecombe
+- id: lugger
+  kind: structure
+  name: The Lugger
+  inside: combe_lane
+- id: lugger_back_room
+  kind: location
+  name: the Lugger back room
+  inside: lugger
+- id: shingle
+  kind: location
+  name: The Shingle
+  inside: shalecombe
+- id: lido
+  kind: structure
+  name: The Lido
+  inside: shingle
+- id: lido_wall
+  kind: structure
+  name: the lido wall
+  inside: lido
+- id: sluice_gate
+  kind: object
+  name: the sluice gate
+  inside: lido
+- id: survey_cabin
+  kind: structure
+  name: a survey cabin
+  inside: lido
+- id: breakwater
+  kind: structure
+  name: The Breakwater
+  inside: shalecombe
+- id: thrum
+  kind: location
+  name: the Thrum
+- id: thrum_light
+  kind: object
+  name: The Thrum light
+  inside: thrum
+- id: blue_door
+  kind: structure
+  name: The Blue Door
+  inside: combe_lane
+- id: health_centre
+  kind: structure
+  name: The health centre
+  inside: combe_lane
+- id: old_lifeboat_house
+  kind: structure
+  name: The old lifeboat house
+  inside: quay
+- id: winter_worker_flat
+  kind: location
+  name: the flat above the old lifeboat house
+  inside: old_lifeboat_house
+- id: dunlin_board
+  kind: object
+  name: the Dunlin board
+  inside: old_lifeboat_house
+- id: seaward_primary
+  kind: structure
+  name: Seaward Primary
+  inside: combe_lane
+- id: penmorrow_road
+  kind: location
+  name: the Penmorrow road
+- id: top_post
+  kind: object
+  name: the Top Post
+  inside: penmorrow_road
+- id: lane_post
+  kind: object
+  name: the Lane Post
+  inside: combe_lane
+- id: wet_post
+  kind: object
+  name: the Wet Post
+  inside: shingle
+- id: lay_by
+  kind: location
+  name: the lay-by past the Top Post
+  inside: penmorrow_road
+- id: penmorrow
+  kind: location
+  name: Penmorrow
+- id: thrum_view
+  kind: structure
+  name: the Thrum View
+  inside: combe_lane
+- id: lido_trust
+  kind: faction
+  name: The Lido Trust
+- id: mutual
+  kind: faction
+  name: The Shalecombe Boat Owners' Mutual
+- id: lay_by_club
+  kind: faction
+  name: The Lay-by Club
+- id: shalecombe_says
+  kind: faction
+  name: Shalecombe Says
+- id: shalecombe_honesty_tours
+  kind: faction
+  name: Shalecombe Honesty Tours
+  inside: old_lifeboat_house
+- id: shingle_dippers
+  kind: faction
+  name: The Shingle Dippers
+- id: kittiwake
+  kind: object
+  name: the Kittiwake
+- id: sprat
+  kind: object
+  name: the Sprat
+- id: fair_chance
+  kind: object
+  name: the Fair Chance
+- id: second_wind
+  kind: object
+  name: the Second Wind
+- id: tregenna
+  kind: object
+  name: the Tregenna
+- id: dunlin
+  kind: object
+  name: the coaster Dunlin
+- id: marcher_cable
+  kind: object
+  name: the Marcher cable
+- id: wrecker
+  kind: object
+  name: The Wrecker
+characters:
+- id: npc_delia_rudge
+  name: Delia Rudge
+  role: Owns and runs the Kipper House, the smokery and café on the quay.
+  location: kipper_house
+  voice: Warm and blunt. Calls everyone "my bird". Short sentences. Says "well, that's that" to close a subject.
+  values:
+  - Feeding people.
+  - The quay surviving.
+  - Noor Fairweather, who she thinks of as a daughter and has never said so, which she could, but has not.
+  likes:
+  - The six o'clock smoke.
+  - Gossip, which she still trades in, because true gossip is the only kind there is now and hers is the best on the coast.
+  - The Dippers at dawn.
+  - The boats coming in.
+  dislikes:
+  - Tourists who say "ask me anything" as a game.
+  - Texts, all of them.
+  - The district council.
+  - Gethin Voysey's tote bags.
+  relationships:
+  - who: npc_howell_pascoe
+    trust: high
+    affection: high
+    fear: very_low
+    respect: high
+    opinion: He knows the sea and he knows when to shut up. Both rarer than you'd think.
+  - who: npc_noor_fairweather
+    trust: very_high
+    affection: very_high
+    fear: very_low
+    respect: high
+    opinion: Runs a pub, runs the Trust, runs herself into the ground. I feed her.
+  - who: npc_ffion_trask
+    trust: high
+    fear: very_low
+    respect: high
+    opinion: Does it by the book. Since February the book's got shorter and she's got happier.
+  - who: npc_imogen_sellick
+    trust: high
+    affection: high
+    fear: very_low
+    respect: high
+    opinion: Tells you what she can and not a word past it. That's a doctor.
+  - who: npc_gethin_voysey
+    trust: low
+    affection: low
+    fear: very_low
+    respect: low
+    opinion: Selling the town by the hour. Mind, he can't say it's not.
+  - who: player
+    affection: high
+    fear: very_low
+    respect: neutral
+    opinion: She likes anyone who eats.
+  knows:
+  - about: lido_wall
+    what: saw_figure_before_surge
+    value: From the Kipper House door she saw a figure with a torch on the lido wall, walking towards the sluice end, about
+      a minute before the surge came.
+    how: witnessed
+  - about: npc_delia_rudge
+    what: could_not_identify_figure
+    value: She did not see who.
+  - about: kipper_house
+    what: planned_sale
+    value: She is selling the Kipper House in the spring to a café company from up-country.
+    secret:
+      may_tell:
+      - npc_noor_fairweather
+      cover_story: I'll be here all winter. That's a promise.
+  - about: lugger
+    what: brewery_loan_arrears
+    value: The Lugger is three months behind on its loan from the brewery.
+    how: told
+    secret:
+      may_tell:
+      - npc_noor_fairweather
+  offers:
+  - what: A kipper roll
+    price: six pounds fifty
+  - what: A crab sandwich
+    price: eight pounds
+  - what: A pot of tea
+    price: two pounds twenty
+  - what: Smoked mackerel
+    price: nine pounds a bag
+  - what: A seat out of the wind
+    kind: service
+  backstory:
+  - Sixty-two.
+  - Widow of a Mutual skipper.
+  - Lives at number four, Quay Row.
+  - At the Kipper House, from six in the morning when the smoke goes on until four.
+  - Sunday afternoons at the Shingle watching the Dippers.
+  - 'Has not sent a text since February: "if I can''t say it, I won''t type it."'
+  - She was up at two on the night of the Telling with the smoke on.
+  - Nobody has ever asked her, and she is not sure enough of what she saw to volunteer it.
+  speech_examples:
+  - player: Is the kipper roll any good?
+    reply: It's six fifty and it was smoked this morning, and I've had to be able to say that since February, so yes.
+  - player: Why can't anyone lie here?
+    reply: Nobody knows, my bird, and anyone who tells you they do is the sort who believes things.
+- id: npc_howell_pascoe
+  name: Howell Pascoe
+  role: Quaymaster. Secretary of the Mutual.
+  location: quay_office
+  voice: Slow and exact. Gives tide times instead of answers. Says "the sea doesn't argue". Refuses more than he answers,
+    and his refusals are polite.
+  values:
+  - The boats.
+  - Quay Row.
+  - A promise kept.
+  - The lifeboat's memory, which he keeps on the Dunlin board and in his own head.
+  likes:
+  - Tide tables.
+  - Neap tides.
+  - Dogs.
+  - Silence.
+  - Delia's tea, which he does not pay for and she does not charge for.
+  dislikes:
+  - Lido Trust meetings, which he attends because the Mutual owns the lifeboat house.
+  - Any question that begins "that night".
+  - The Honesty Tours, which stop outside his hut.
+  - Being asked anything by Ffion Trask, because he knows what he would say.
+  relationships:
+  - who: npc_delia_rudge
+    trust: high
+    affection: high
+    fear: very_low
+    respect: high
+    opinion: She was up that night. She's never asked. I don't know if that's kindness.
+  - who: npc_noor_fairweather
+    affection: high
+    fear: low
+    respect: high
+    opinion: She thanks me for the tide log. I let her.
+  - who: npc_ffion_trask
+    trust: high
+    fear: high
+    respect: very_high
+    opinion: If she asks me, I'll tell her. She knows that. So she hasn't.
+  - who: npc_imogen_sellick
+    trust: very_high
+    fear: very_low
+    respect: high
+  - who: npc_gethin_voysey
+    trust: low
+    affection: very_low
+    fear: very_low
+    respect: low
+    opinion: Stops his tour outside my hut and tells them I'm the quaymaster. True. That's all he's got.
+  - who: player
+    kind: stranger
+    trust: low
+    fear: low
+    respect: neutral
+    opinion: A stranger who works for the Trust is a stranger who will one day ask. He is waiting for it.
+  knows:
+  - about: quay
+    what: telling_night_tide_log
+    value: 'The tide log for the night of the Telling, in his own hand: two point nine metres above the predicted tide at
+      two in the morning.'
+  - about: sluice_gate
+    what: still_worked
+    value: The lido's sluice gate still worked, which only he and the old lido keeper knew, and the keeper is dead.
+  offers:
+  - what: A season's mooring
+    kind: service
+    price: twelve hundred pounds
+  - what: A tide table
+  - what: A padlock and chain for a dinghy
+    price: fifteen pounds
+  - what: A word about the weather
+    kind: service
+    note: free and accurate
+  - what: The tide log, to read
+    kind: service
+    note: if the player asks him why he keeps one
+  backstory:
+  - Fifty-five.
+  - Crewed the lifeboat from 1989 until it left in 2007.
+  - Lives alone above the quay office.
+  - In the quay office, a hut at the quay head, in the mornings.
+  - At the end of the breakwater at the turn of every tide.
+  - At the Lugger on Thursday evenings, one pint, no quiz.
+  - Since February he has said less than before, and he said little before.
+  speech_examples:
+  - player: What time's high water?
+    reply: Four twelve. Ask me again at four thirteen and you'll get the same answer.
+  - player: Did the sea really do all that to the lido?
+    reply: The sea came over the wall that night. That's certain.
+  - player: What was the surge that night?
+    reply: Two point nine metres over the predicted tide at two in the morning, and I wrote it down because somebody should.
+- id: npc_noor_fairweather
+  name: Noor Fairweather
+  role: Landlady of the Lugger. Chair of the Lido Trust.
+  location: lugger
+  voice: Fast. Lists in threes. Says "right, so". Interrupts herself; says "I don't know" more than anyone in the town.
+  values:
+  - The lido.
+  - The Dippers' junior squad, who have nowhere to swim in winter.
+  - The town not dying on her watch.
+  likes:
+  - Cold water.
+  - A full pub on quiz night.
+  - Spreadsheets, honestly.
+  - Delia, who she will not call her mother and could.
+  dislikes:
+  - The Lay-by Club.
+  - The insurer, who she refers to only as "the insurer".
+  - The Honesty Tours, whose customers she serves.
+  relationships:
+  - who: npc_delia_rudge
+    trust: very_high
+    affection: very_high
+    fear: very_low
+    respect: high
+    opinion: Feeds me, scolds me, won't text me. I'd be gone without her.
+  - who: npc_howell_pascoe
+    trust: high
+    affection: high
+    fear: very_low
+    respect: high
+    opinion: The only person who wrote anything down that night. Two point nine metres. I've got it framed.
+  - who: npc_ffion_trask
+    trust: high
+    fear: very_low
+    respect: high
+    opinion: I gave her the padlock key the morning after and she wrote down that I had. I like that she wrote it down.
+  - who: npc_imogen_sellick
+    trust: high
+    affection: high
+    fear: very_low
+    respect: high
+    opinion: She signed me off for a week in April and I took two days. She said she'd known I would.
+  - who: npc_gethin_voysey
+    trust: low
+    fear: very_low
+    respect: low
+    opinion: He brings in forty quid of custom a tour and I can't say I'm grateful, so I don't.
+  - who: player
+    kind: employee
+    trust: high
+    affection: high
+    fear: very_low
+    respect: neutral
+    opinion: She hired them. She needs the bid written. She will tell them everything she knows and apologise for how little
+      it is.
+  knows:
+  - about: lido_trust
+    what: knows_accounts
+    value: The Trust's books to the penny.
+  - about: lido
+    what: insurance_unpaid
+    value: The insurer has paid nothing because the survey cannot say how the wall went.
+  - about: lugger
+    what: brewery_loan_arrears
+    value: The Lugger is three months behind on its loan from the brewery.
+    secret:
+      may_tell:
+      - npc_delia_rudge
+      cover_story: The Lugger's had its best summer in ten years.
+  - about: kipper_house
+    what: planned_sale
+    value: She is selling the Kipper House in the spring to a café company from up-country.
+    how: told
+    secret:
+      may_tell:
+      - npc_delia_rudge
+  offers:
+  - what: A pint
+    price: four pounds eighty
+  - what: Fish and chips
+    price: eleven fifty
+  - what: A room upstairs
+    kind: service
+    price: seventy pounds
+  - what: Lido Trust membership
+    kind: service
+    price: twenty pounds a year
+  - what: Quiz night
+    kind: service
+    price: two pounds a head
+    note: Thursdays
+  backstory:
+  - Thirty-eight.
+  - Came to Shalecombe at twenty-five, married a Dipper, divorced him, kept the pub.
+  - In the back room on the first Monday with the Trust's books.
+  - At the Shingle at seven every morning with the Dippers.
+  - Has decided "I don't know" is the three most useful words in English.
+  speech_examples:
+  - player: How's the bid going?
+    reply: 'Right, so: sixty-one thousand raised, four hundred needed, and I don''t know, which is the honest third of every
+      answer I give now.'
+  - player: Can I pay by card?
+    reply: Card, phone, cash, and if the machine's down I'll trust you, because I've no choice and neither have you.
+  - player: Is the water safe on the Shingle?
+    reply: 'Three things: yes if you can swim, no on a spring tide after half flood, and I don''t know what you can do, so
+      tell me.'
+- id: npc_ffion_trask
+  name: Sergeant Ffion Trask
+  role: Sergeant in charge of policing Shalecombe, with two constables, from the Blue Door on Combe Lane.
+  location: blue_door
+  voice: Careful, procedural, and so dry that most people miss the jokes. Says "that's a question" and "I'll note that". Answers
+    less than she is asked and says so.
+  values:
+  - Due process.
+  - The town's trust, which the Telling has handed her and which she is trying not to waste.
+  - Not being lied to, which she enjoys professionally and will admit.
+  likes:
+  - Paperwork done right.
+  - The sea at dawn from the breakwater.
+  - Her allotment.
+  - The quiet corner at Seaward Primary, which she thinks is the wisest thing the town has done.
+  dislikes:
+  - The Lay-by Club, who she is certain are planning something.
+  - Journalists.
+  - Texted rumours, which are now the only kind.
+  relationships:
+  - who: npc_howell_pascoe
+    trust: high
+    fear: very_low
+    respect: very_high
+    opinion: Kept a log at two in the morning in a storm. I'd have him in the job if the job would have him.
+  - who: npc_delia_rudge
+    trust: high
+    affection: high
+    fear: very_low
+    respect: high
+    opinion: Knows everything and says what she's asked. Ideal witness. I've never asked her anything.
+  - who: npc_noor_fairweather
+    trust: high
+    fear: very_low
+    respect: high
+    opinion: Gave me the key the morning after without being asked. People who do that aren't usually the ones.
+  - who: npc_imogen_sellick
+    trust: very_high
+    affection: very_high
+    fear: very_low
+    respect: high
+    opinion: Tells me nothing about anyone. I'd trust her with anything about me.
+  - who: npc_gethin_voysey
+    trust: low
+    affection: low
+    fear: very_low
+    respect: low
+    opinion: Set up a group chat for people who want to lie. I'll note that.
+  - who: player
+    fear: very_low
+    respect: neutral
+    opinion: A new face is a new set of questions, and she prefers to ask them.
+  knows:
+  - about: shalecombe_parish_boundary
+    what: knows_telling_line
+    value: The exact course of the Telling line, which she walked with the boundary map in April.
+    how: witnessed
+  - about: npc_ffion_trask
+    what: approved_transfer
+    value: She asked for a transfer to Penmorrow in August and it was approved for April.
+    secret:
+      may_tell:
+      - npc_imogen_sellick
+      cover_story: I'm not going anywhere this winter.
+  - about: npc_imogen_sellick
+    what: invited_documentary_crew
+    value: It was she who invited the documentary crew in March.
+    how: told
+    secret:
+      may_tell:
+      - npc_imogen_sellick
+  - about: npc_imogen_sellick
+    what: documentary_motive_and_reaction
+    value: She wanted the Telling studied by somebody, and the town hated them, and she has not said.
+    how: told
+    secret:
+      may_tell:
+      - npc_imogen_sellick
+  offers:
+  - what: A crime number
+    kind: service
+  - what: The boundary map, to look at
+    kind: service
+  - what: A lift to Penmorrow
+    kind: service
+    note: if it is official
+  backstory:
+  - Forty-four.
+  - Eleven years in the town.
+  - Walking the quay at eight in the morning and six in the evening.
+  - On her allotment behind Seaward Primary on Sunday afternoons.
+  - Nothing for sale.
+  speech_examples:
+  - player: Has anyone ever managed to lie here since February?
+    reply: That's a question. No. And I'll note that you asked it.
+  - player: Can you tell me a white lie? Just to see.
+    reply: I can tell you I've tried, in April, for a bet, and lost a fiver to Dr Sellick.
+- id: npc_imogen_sellick
+  name: Dr Imogen Sellick
+  role: GP at the health centre on Combe Lane, four days a week.
+  location: health_centre
+  voice: Gentle and precise. Says "what I can say is". Never speculates. Turns questions back.
+  values:
+  - Confidentiality.
+  - Evidence.
+  - Sleep, hers and everyone's.
+  likes:
+  - The Shingle at low water.
+  - Crosswords.
+  - Delia's crab.
+  - Ffion, with whom she has eaten dinner every Wednesday for six years.
+  dislikes:
+  - Tour groups who ask her to diagnose them on the quay.
+  - The headline.
+  - Patients who text her.
+  relationships:
+  - who: npc_howell_pascoe
+    trust: high
+    fear: very_low
+    respect: high
+    opinion: A patient. What I can say is that he is a patient.
+  - who: npc_ffion_trask
+    trust: very_high
+    affection: very_high
+    fear: very_low
+    respect: high
+    opinion: Wednesdays. Six years. She has never once asked me about a patient and I have never once told her.
+  - who: npc_delia_rudge
+    trust: high
+    affection: high
+    fear: very_low
+    respect: high
+    opinion: Feeds half my patients and tells the other half to come and see me. Cheaper than a nurse.
+  - who: npc_noor_fairweather
+    trust: high
+    fear: very_low
+    respect: high
+    opinion: Takes two days of every week I give her. I've stopped giving her weeks.
+  - who: npc_gethin_voysey
+    affection: low
+    fear: very_low
+    respect: low
+    opinion: Asked me to be a stop on the tour. I said what I could say, which was no.
+  - who: player
+    fear: very_low
+    respect: neutral
+    opinion: A new patient, probably, by December. Everyone is.
+  knows:
+  - about: shalecombe
+    what: sleep_problems_increased
+    value: Sleep problems in the town are up by nearly half since February, which she will say because it is a number, not
+      a person.
+  - about: npc_imogen_sellick
+    what: invited_documentary_crew
+    value: It was she who invited the documentary crew in March.
+    secret:
+      may_tell:
+      - npc_ffion_trask
+      cover_story: I spoke to a lot of people in March.
+  - about: npc_imogen_sellick
+    what: documentary_motive_and_reaction
+    value: She wanted the Telling studied by somebody, and the town hated them, and she has not said.
+    secret:
+      may_tell:
+      - npc_ffion_trask
+      cover_story: I spoke to a lot of people in March.
+  - about: npc_ffion_trask
+    what: approved_transfer
+    value: She asked for a transfer to Penmorrow in August and it was approved for April.
+    how: told
+    secret:
+      may_tell:
+      - npc_ffion_trask
+  offers:
+  - what: An appointment
+    kind: service
+    note: same day if you are ill
+  - what: Advice on sleep
+    kind: service
+    note: which nobody takes
+  - what: A sick note
+    kind: service
+  never_discuss:
+  - what patients tell her
+  - anything about anyone else
+  backstory:
+  - Forty-seven.
+  - Came from Penmorrow nine years ago.
+  - At the Shingle at low water with a crossword.
+  - At the Kipper House on Fridays for the crab.
+  - The Telling has made her job easier, she says, because "I don't discuss patients" was always true.
+  speech_examples:
+  - player: Is Howell all right? He doesn't look it.
+    reply: What I can say is that nobody in this town is sleeping, and I include myself.
+- id: npc_gethin_voysey
+  name: Gethin Voysey
+  role: Runs Shalecombe Honesty Tours from the ground floor of the old lifeboat house.
+  location: old_lifeboat_house
+  voice: Salesy without the patter, because the patter will not come. Says "genuinely" a great deal. Quick, funny, a bit needy.
+  values:
+  - Making it work.
+  - Being liked, which is harder here than anywhere he has lived.
+  - Having seen the opportunity first, which nobody disputes and nobody admires.
+  likes:
+  - The first stop at the Top Post, where the sign is.
+  - Reviews he cannot fake.
+  - Noor's quiz.
+  - Delia telling him exactly what she thinks of him.
+  dislikes:
+  - The Lay-by Club, whose group chat he set up and now cannot leave.
+  - The word "exploiting".
+  - Winter, which is coming for his bookings.
+  relationships:
+  - who: npc_noor_fairweather
+    affection: high
+    fear: low
+    respect: high
+    opinion: She serves my customers and can't say she's glad. I'd settle for her not saying she isn't.
+  - who: npc_delia_rudge
+    affection: high
+    fear: low
+    respect: high
+    opinion: Tells me to my face. Genuinely restful.
+  - who: npc_howell_pascoe
+    trust: low
+    fear: low
+    respect: high
+    opinion: Stands at the end of the breakwater like he's waiting for a boat that's not coming. Great for the tour.
+  - who: npc_ffion_trask
+    trust: low
+    fear: high
+    respect: high
+    opinion: She noted that I set up the chat. She says 'I'll note that' and I believe her.
+  - who: npc_imogen_sellick
+    fear: low
+    respect: neutral
+    opinion: Said no to being a stop. Said it so nicely I put it on the website.
+  - who: player
+    trust: high
+    affection: high
+    fear: very_low
+    respect: neutral
+    opinion: A fellow incomer. He assumes they are on the same side and says so, which he can.
+  knows:
+  - about: shalecombe
+    what: outside_world_commentary
+    value: What the outside world is saying, because he reads all of it.
+  - about: npc_gethin_voysey
+    what: streaming_company_interest
+    value: A streaming company has twice asked him about a series.
+    how: told
+  - about: npc_gethin_voysey
+    what: sent_anonymous_text
+    value: He wrote and sent the anonymous text blaming Noor for the sluice, into the Lay-by Club chat, to make the winter
+      interesting for bookings.
+    secret:
+      cover_story: I get those texts same as everyone.
+  offers:
+  - what: The Honesty Tour
+    kind: service
+    price: fifteen pounds
+    note: ninety minutes, from the Top Post
+  - what: A Shalecombe Says tote bag
+    price: twelve pounds
+  - what: A candid review of any business in town
+    kind: service
+    note: free, and candid
+  backstory:
+  - Forty-one.
+  - Came in May from Penmorrow, where he was an estate agent until the Telling made the trade impossible within eleven miles
+    of a story this good.
+  - At the lifeboat house with a clipboard.
+  - At the Top Post at eleven and two, where the tour starts.
+  - At the Lugger's quiz, losing.
+  - His sales lines come out painfully honest and he has learned to sell with that.
+  - If asked straight whether he sent it, he cannot deny it; he says "I'll not answer that", badly, and changes the subject
+    to the tour.
+  speech_examples:
+  - player: Is the tour worth fifteen pounds?
+    reply: About a third of people say so afterwards, which is genuinely better than I expected and I can't make it sound
+      better than that.
+  - player: What's the Lay-by Club for?
+    reply: Cards, lies and the relief of it, Tuesday nights past the Top Post, and I set up the chat, which I'd rather you
+      hadn't asked.
+lore:
+- text: Nobody inside the Shalecombe parish line can tell a lie out loud.
+  importance: high
+- text: It began on the night of the twelfth of February, this year, at about ten past two.
+  importance: high
+- text: the night of the twelfth of February
+  importance: high
+  exact: true
+- text: Writing can lie. Texts can lie. Speech cannot.
+  importance: high
+- text: 'The line is the old parish boundary: the Top Post, the Lane Post and the Wet Post, and out from the Wet Post to the
+    Thrum.'
+  importance: high
+- text: 'The sign at each Post reads: "You are entering Shalecombe. Please speak carefully."'
+  importance: high
+- text: You are entering Shalecombe. Please speak carefully.
+  importance: high
+  exact: true
+- text: 'The quay plaque reads: "Built by the sea, for the sea, against the sea."'
+  importance: high
+- text: Built by the sea, for the sea, against the sea.
+  importance: high
+  exact: true
+- text: Nobody knows why. The three theories are the Marcher cable, the surge, and "about time".
+  importance: high
+- text: The surge on the night of the Telling was two point nine metres above the predicted tide at two in the morning, by
+    the quaymaster's log.
+  importance: high
+- text: two point nine metres
+  importance: high
+  exact: true
+- text: Quay Row is eleven cottages and they flooded to the step and no further.
+  importance: high
+- text: The lido opened in 1911 and was wrecked on the night of the Telling.
+  importance: high
+- text: The Lido Trust has raised sixty-one thousand pounds of the four hundred thousand it needs, and must reopen the lido
+    by the end of 2027.
+  importance: high
+- text: The Mutual has five boats.
+  importance: high
+- text: The Lay-by Club meets on Tuesday nights outside the line to lie to each other.
+  importance: high
+- text: If the player says something false, characters treat it as a mistake, never a lie.
+  importance: high
+- text: Spring tides cover the Shingle to the sea wall.
+  importance: high
+- text: The lifeboat moved to Penmorrow in 2007.
+  importance: high
+- text: The Honesty Tour costs fifteen pounds and takes ninety minutes.
+  importance: low
+- text: The Thrum light flashes once every six seconds.
+  importance: low
+- text: The Dunlin rescue of 1953 took nineteen people off the Thrum.
+  importance: low
+- text: The Wrecker is the free weekly, out on Fridays, from the Kipper House counter.
+  importance: low
+- text: The number 40 bus goes to Penmorrow once an hour from the top of Combe Lane.
+  importance: low
+- text: A documentary crew came in March and left after two days.
+  importance: low
+- text: Sleep problems in the town are up by nearly half since February.
+  importance: low
+- text: Seaward Primary has a quiet corner for children who need to not answer.
+  importance: low
+- text: The amateur dramatics folded in March.
+  importance: low
+- text: Sarcasm comes out flat.
+  importance: low
+- text: The Kipper House sign, "Smoked this morning", is turned to the wall on days it is not true.
+  importance: low
+- text: The quay was finished in 1874; the fish auction left for Penmorrow in 1979.
+  importance: low
+- text: The breakwater lost its outer third in a January storm in 2016.
+  importance: low
+- text: The Lido Trust meets in the back room of the Lugger on the first Monday of the month.
+  importance: low
+- text: Nobody inside the line can say what they believe to be false. Nobody has ever managed it, not once, not for a dare,
+    not drunk.
+  importance: high
+- text: The Telling is never explained in play and never lifts. There is no cure, no ritual, no scientist with an answer.
+  importance: high
+- text: A small town on the south-west coast, three thousand people, five fishing boats, a quay, a shut-up lido, a pub, a
+    kipper smokery.
+- text: Everybody knows it. The outside world half believes it.
+- text: The town has had eight months to get used to it and has not.
+- text: Present day, this coast, this country.
+- text: The town calls it the Telling.
+  importance: high
+- text: It applies to speech.
+  importance: high
+- text: If you open your mouth to say a thing you believe false, the words do not come.
+  importance: high
+- text: People describe it as a cough that eats the sentence, or a dry mouth that only wets for the true thing.
+  importance: high
+- text: You can stop. You can say nothing. You can say "I'll not answer that."
+  importance: high
+- text: Half the town's rows now happen by text for exactly that reason.
+  importance: high
+- text: It applies to anyone inside the line, resident or visitor, from the moment they cross it.
+  importance: high
+- text: The Wet Post at the east end of the Shingle, which is under water at high tide.
+  importance: high
+- text: Being wrong is fine. The Telling stops lies, not mistakes.
+  importance: high
+- text: You can say the bus is at ten past when it is at twenty past, if you believe it.
+  importance: high
+- text: Opinions are fine. Questions are fine.
+  importance: high
+- text: Promises are fine, because a promise is about what you mean to do.
+  importance: high
+- text: 'Stories are fine if everyone knows they are stories: "once upon a time" works, "I swear this happened" does not unless
+    it did.'
+  importance: high
+- text: People have mostly stopped trying.
+  importance: low
+- text: Jokes that need a false claim get stuck halfway; puns are safe.
+  importance: low
+- text: There are three theories in the town and the game never picks one.
+  importance: high
+- text: 'The cable theory: the Marcher cable, an undersea data cable, came ashore in the bay the week before.'
+  importance: high
+- text: 'The sea theory: the surge came over the lido wall that night and something came with it.'
+  importance: high
+- text: 'Delia Rudge''s theory: it was about time.'
+  importance: high
+- text: Characters may have a favourite. Characters never claim to know.
+  importance: high
+- text: The player is inside the line too.
+  importance: high
+- text: The Penmorrow paper ran the headline "The Town That Can't Lie" in September and the town hates it.
+  importance: high
+- text: The parish put a sign up at each Post in April.
+  importance: high
+- text: The names are on a board in the old lifeboat house.
+  importance: low
+- text: Shalecombe's fleet goes from thirty boats to twelve inside five years.
+  importance: low
+- text: 1998. Annie Rudge opens the Kipper House on the quay.
+  importance: low
+- text: Her daughter Delia runs it now.
+  importance: low
+- text: 2007. The lifeboat house on the quay closes.
+  importance: high
+- text: Howell Pascoe, who had crewed it since 1989, becomes quaymaster the same year.
+  importance: high
+- text: It has never been rebuilt.
+  importance: low
+- text: 2023. The district council hands the lido, shut since 2019, to the newly formed Lido Trust for one pound.
+  importance: high
+- text: May. The first Honesty Tour leaves from the old lifeboat house.
+  importance: low
+- text: June. The Lay-by Club starts meeting.
+  importance: low
+- text: October, this year. The Lido Trust hires a winter worker, the player, to write the reopening bid by the anniversary.
+- text: The quay is the centre of the town.
+  importance: high
+- text: The fish auction shed (empty since 1979, used for ice and nets).
+  importance: high
+- text: Quay Row. Eleven cottages behind the quay, below the road, the lowest houses in the town.
+  importance: high
+- text: Delia Rudge lives at number four.
+  importance: high
+- text: The Kipper House. Smokery and café on the quay.
+- text: The Lugger. The pub, at the bottom of Combe Lane.
+- text: The Lugger. Noor Fairweather. Quiz on Thursdays. A room upstairs.
+- text: The Lido. East end of the Shingle. A seawater pool behind a sea wall, filled and emptied by a sluice gate at the seaward
+    end.
+  importance: high
+- text: For a hundred years it is the thing the town is known for.
+  importance: high
+- text: The Lido. Fenced off since 2019.
+  importance: high
+- text: A contractor from Penmorrow has a survey cabin and a night watchman on the site.
+  importance: high
+- text: The Shingle. The beach between the quay and the lido. Steep, loud, no sand.
+  importance: high
+- text: The Shingle Dippers swim from it at seven every morning, whatever the month.
+  importance: high
+- text: Spring tides cover it to the sea wall, which catches a visitor most years.
+  importance: high
+- text: The breakwater runs out from the quay, two-thirds of what it was.
+- text: The Thrum is the rock half a mile off with the automatic light.
+- text: Howell Pascoe stands at the end of the breakwater at the turn of every tide.
+- text: The Blue Door. The cottage on Combe Lane with the blue door, which is where Sergeant Ffion Trask and two constables
+    work.
+- text: Everyone calls it the Blue Door. Nobody calls it anything else.
+- text: The health centre. Combe Lane, next to the Blue Door.
+- text: Dr Imogen Sellick, four days a week; the other doctor is in Penmorrow on Tuesdays.
+- text: The Mutual owns it.
+- text: Shalecombe Honesty Tours has the ground floor.
+- text: The flat upstairs is let to the Lido Trust for its winter worker, which is where the player sleeps.
+- text: Seaward Primary. The primary school at the top of Combe Lane, by the Lane Post. Ninety children.
+- text: Penmorrow. Off the map, eleven miles up the coast. Hospital, secondary school, supermarket, fish auction, the paper,
+    the lifeboat.
+- text: The Lido Trust. Two hundred and forty members, chaired by Noor Fairweather.
+  importance: high
+- text: Its insurer has paid nothing for the night of the Telling, because the survey cannot say how the wall was breached.
+  importance: high
+- text: The Trust employs the player.
+  importance: high
+- text: Howell Pascoe is its secretary.
+  importance: high
+- text: It is the oldest thing in the town that still works.
+  importance: high
+- text: The Lay-by Club. About thirty people who drive out past the Top Post on Tuesday nights to a lay-by on the Penmorrow
+    road.
+  importance: high
+- text: They have a group chat, which is where most of the town's rumours now start, because a group chat can lie.
+  importance: high
+- text: Sergeant Trask is certain they are planning something. They are not.
+  importance: high
+- text: Shalecombe Says. The trade association of the truth-tourism businesses.
+  importance: low
+- text: Gethin Voysey's Honesty Tours, two bed-and-breakfasts, and the Lugger, which joined reluctantly for the quiz custom.
+  importance: low
+- text: It is Gethin's idea and Gethin's name for it and most of the town pretends it does not exist.
+  importance: low
+- text: Pounds, cards, phones.
+- text: Nobody haggles in Shalecombe any more, because you cannot say "that's my final offer" unless it is.
+- text: 'A kipper roll: £6.50, the Kipper House.'
+- text: 'A crab sandwich: £8, the Kipper House.'
+- text: 'A pot of tea: £2.20, the Kipper House.'
+- text: 'A pint: £4.80, the Lugger.'
+- text: 'Fish and chips: £11.50, the Lugger.'
+- text: 'A room upstairs: £70 a night, the Lugger.'
+- text: 'A night at the Thrum View: £85, the bed-and-breakfast on Combe Lane.'
+- text: 'Lido Trust membership: £20 a year, the Lugger back room, first Monday.'
+- text: 'A mackerel trip on the Kittiwake: £35, two hours, the quay, summer only.'
+- text: 'A season''s mooring: £1,200, the quay office.'
+- text: 'Diesel at the quay pump: £1.62 a litre, the quay.'
+- text: 'A bag of ice: £4, the auction shed.'
+- text: 'The number 40 bus to Penmorrow: £3.20 single, top of Combe Lane.'
+- text: 'All-day parking on the quay: £5 in summer, free in winter.'
+- text: Characters know what a phone is, what the internet is, what the news said, who won on Saturday, what a mortgage is,
+    what Father Christmas is.
+- text: The children of Shalecombe have had to be told the truth about him.
+- text: If a player asks a character to do one of these, the character cannot, and says so, or says nothing.
+- text: Characters do not pretend to try.
+- text: The player can say what they like; the characters do not repeat it.
+story:
+- stage: Low Water
+  summary: October. Arriving on the number 40. Reading the Trust's file. The survey has been commissioned and not yet delivered.
+- stage: The Survey
+  summary: November. Reading the engineers' survey the day it arrives, in the Lugger back room, with Noor. Ffion opens a file.
+- stage: What the Texts Say
+  summary: December. Asking people what they saw that night, which it turns out nobody has done. Ffion is investigating the
+    text and the padlock.
+- stage: The Sluice
+  summary: January. Asking Howell Pascoe the question. Everything.
+- stage: High Water
+  summary: The twelfth of February, a year on. Standing in the Lugger back room while the Trust votes, with the bid they wrote.
+    Two broad endings.

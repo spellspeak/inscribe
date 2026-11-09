@@ -1,0 +1,9 @@
+# The example game shalecombe. Sheet and lore are complete. Run `inscribe check` here.
+game: shalecombe
+base: [glyph-2b, sigil-4b]
+
+backend:
+  name: modal
+
+budget:
+  max_usd: 80
