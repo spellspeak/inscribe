@@ -43,7 +43,7 @@ class LLMConfig(_Strict):
 class ReplayConfig(_Strict):
     """General examples mixed in so the model keeps the skills it had."""
 
-    source: str | None = None  # where the replay pack is: a folder, or hf://<dataset>
+    source: str | None = "hf://spellspeak/replay-pack@0.1"  # the published pack at a fixed tag; or store:<folder>, or another hf://<dataset>[@revision]
     to_one: int = Field(4, ge=MIN_REPLAY_TO_ONE)  # replay examples per game example
 
 

@@ -111,7 +111,7 @@ def test_it_stops_before_spending_past_the_budget_or_without_what_it_needs(game,
     result = _run(root, "--yes")
     assert result.exit_code == 1 and "OPENAI_API_KEY is not set" in result.output and calls == []
     monkeypatch.setenv("OPENAI_API_KEY", "test")
-    (root / "lora.yaml").write_text((root / "lora.yaml").read_text().replace("replay:\n  source: store:replay/0.1\n", ""))
+    (root / "lora.yaml").write_text((root / "lora.yaml").read_text().replace("source: store:replay/0.1", "source: null"))
     result = _run(root, "--yes")
     assert result.exit_code == 1 and "No replay pack" in result.output and calls == []
 

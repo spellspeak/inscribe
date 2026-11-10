@@ -10,8 +10,6 @@ You write the lore. Inscribe turns it into training scenes, has a teacher model 
 
 This is an early build. Every step from prose lore to a scored GGUF file works: it reads your lore into a game sheet for you to check, plans the data, has a teacher write the training lines and checks them, mixes them, trains on Modal, exports a GGUF file, scores it and writes a report card.
 
-One thing is missing: the replay pack the mix draws on is not published yet.
-
 | Step | Command | What it does | Status |
 |---|---|---|---|
 | Start | `inscribe init` | Makes a game project from a template | works |
@@ -19,7 +17,7 @@ One thing is missing: the replay pack the mix draws on is not published yet.
 | Check | `inscribe check` | Validates the game sheet, shows what would be built, forecasts the run | works |
 | Plan | `inscribe plan` | Builds the training scenes, the held-out questions and the world files | works |
 | Data | `inscribe data` | A teacher model answers the scenes on your Modal account, and the answers are checked | works |
-| Mix | `inscribe mix` | Mixes the game's rows with general rows, so the model keeps the skills it had | works; the replay pack it draws on is not published yet |
+| Mix | `inscribe mix` | Mixes the game's rows with general rows, so the model keeps the skills it had | works |
 | Train | `inscribe train` | Trains the LoRA on your Modal account and merges it | works |
 | Export | `inscribe export` | Makes the GGUF file and answers the held-out questions with it | works |
 | Score | `inscribe eval` | Lore recalled, later story told early, the character's voice, skills kept. Writes the report card | works |
@@ -34,7 +32,7 @@ One thing is missing: the replay pack the mix draws on is not published yet.
 It needs Python 3.12 or later and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-git clone <this repo> && cd spellspeak-inscribe
+git clone https://github.com/spellspeak/inscribe && cd inscribe
 uv sync
 uv run inscribe init my-game
 cd my-game
@@ -180,7 +178,7 @@ The one flag: asked "Tell me how it all turns out", a character said "It doesn't
 
 A LoRA trained on a game's rows alone forgets how to do what the base model could. So about six rows in seven of the mix are replay: general rows the base model was trained on. `inscribe mix` takes four of them for each of the game's rows, and a fixed number more from the families a game LoRA loses first: things from the real world, long conversations, and who speaks next in a group.
 
-The general rows come from a replay pack, about 55,000 rows already rendered as text. The same seed always draws the same rows. The pack is not published yet, so today `inscribe mix` only works where the pack is.
+The general rows come from a replay pack, about 55,000 rows already rendered as text. The same seed always draws the same rows. The pack is a public dataset, [spellspeak/replay-pack](https://huggingface.co/datasets/spellspeak/replay-pack), and the mix step downloads it on the backend. `lora.yaml` pins it by tag.
 
 ## What `data` does
 

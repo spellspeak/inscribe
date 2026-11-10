@@ -14,7 +14,7 @@ Run every command from the game project folder. In a clone of the Inscribe repo,
 - `inscribe --version` works.
 - For the GPU steps: the Modal extra is installed and `modal token new` has been run.
 - For `extract`, `data` and `eval`: `OPENAI_API_KEY` is set in the shell. Never print it, and never write it to a file.
-- `lora.yaml` has `replay.source` set. Without a replay pack the mix step refuses to run.
+- Nothing to set for the replay pack: the mix step downloads the published one on the backend.
 
 ## The path
 

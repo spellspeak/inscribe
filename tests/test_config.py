@@ -18,6 +18,7 @@ def test_defaults_and_one_base_as_a_string(tmp_path):
     (tmp_path / "lora.yaml").write_text("game: g\nbase: sigil-4b\n")
     c = load_config(tmp_path / "lora.yaml")
     assert c.base == ["sigil-4b"] and c.replay.to_one == 4 and c.teacher.candidates == 4 and c.backend.name == "modal"
+    assert c.replay.source == "hf://spellspeak/replay-pack@0.1", "the published pack, pinned by tag"
 
 
 def test_overrides_are_read_as_yaml():

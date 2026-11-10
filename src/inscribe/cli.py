@@ -419,7 +419,7 @@ def mix(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B00
     proj, config = _open(project, set_)
     recipe = load_recipe(config.base[0])
     if not config.replay.source:
-        raise _fail("No replay pack: set replay.source in lora.yaml (store:<folder> or hf://<dataset>). The pack is not published yet.")
+        raise _fail("No replay pack: replay.source in lora.yaml is empty. Leave it out to use the published pack, or set store:<folder> or hf://<dataset>.")
     if not (proj.plan_dir / "worlds").is_dir():
         raise _fail("No build/plan/: run `inscribe plan` first.")
     backend = _backend(config, proj)
@@ -715,7 +715,7 @@ def run(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B00
     sheet, npcs = _load_inputs(proj)
     recipes = [load_recipe(b) for b in config.base]
     if not config.replay.source and first <= RUN_STEPS.index("mix") <= last:
-        raise _fail("No replay pack: set replay.source in lora.yaml (store:<folder> or hf://<dataset>). The pack is not published yet.")
+        raise _fail("No replay pack: replay.source in lora.yaml is empty. Leave it out to use the published pack, or set store:<folder> or hf://<dataset>.")
     # The plan is free and always the same for the same sheet, so it is built first and its hash starts the chain.
     plan(project, set_)
     plan_fp = _file_digest(proj.plan_dir / "plan.yaml")

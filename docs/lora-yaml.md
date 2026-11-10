@@ -8,7 +8,7 @@ Override a setting for one command with `--set`, for example `inscribe run --set
 game: my_game
 base: glyph-2b
 replay:
-  source: hf://<dataset>
+  to_one: 5
 budget:
   max_usd: 80
 ```
@@ -27,7 +27,7 @@ budget:
 | `llm.key_env` | `OPENAI_API_KEY` | The environment variable that holds your key. The key is read on your machine and sent nowhere else |
 | `llm.strong_model` | the one the recipes were measured with | Reads lore into a sheet, and judges spoilers and voice. The template's `lora.yaml` names it |
 | `llm.fast_model` | the one the recipes were measured with | Checks the teacher's lines |
-| `replay.source` | none | The replay pack: `hf://<dataset>`, or `store:<folder>` for a pack already on the project's volume. The mix step needs it |
+| `replay.source` | `hf://spellspeak/replay-pack@0.1` | The replay pack: the [published one](https://huggingface.co/datasets/spellspeak/replay-pack) at a fixed tag. Or another `hf://<dataset>[@revision]`, or `store:<folder>` for a pack already on the project's volume |
 | `replay.to_one` | `4` | Replay rows per game row. Never below 3 |
 | `teacher.candidates` | `4` | Lines the teacher writes per scene, 1 to 8. The checks keep the best one, or none |
 | `train.epochs` | the recipe's (3) | Passes over the mix |

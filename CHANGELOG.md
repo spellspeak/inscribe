@@ -18,3 +18,4 @@
 - A run-time character in `npcs.yaml` that does not fit the sheet is reported as such.
 - `inscribe run`: every step from plan to eval in order. A step that finished with the same inputs is skipped, and a step still running from an earlier launch is followed.
 - The README carries one run on the 4B model, and one run of the second example from a fresh clone through `inscribe run`.
+- The replay pack is published, and `replay.source` defaults to it at a fixed tag: `hf://spellspeak/replay-pack@0.1`.

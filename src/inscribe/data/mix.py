@@ -145,7 +145,7 @@ def run(work: pathlib.Path, run_dir: pathlib.Path, job: dict) -> dict:
     shards = write_shards(rows, work / job["out"])
     manifest = {"examples": len(rows), "parts": parts, "seed": job["seed"], "to_one": job["to_one"], "chat_format": job["chat_format"],
                 "by_family": dict(sorted(Counter(r["family"] for r in rows).items())),
-                "pack": {"source": job["pack"], "version": pack["version"], "sha256": {k: v["sha256"] for k, v in pack["files"].items()}},
+                "pack": {"source": job["pack"], "version": pack["version"], "sha256": {k: pack["files"][k]["sha256"] for k in PACK_FILES}},
                 "shards": shards}
     (work / job["out"] / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n")
     print(f"mix: {len(rows)} rows in {len(shards)} shards ({parts['game']} game, {parts['replay']} replay, {sum(parts['targeted'].values())} targeted)", flush=True)

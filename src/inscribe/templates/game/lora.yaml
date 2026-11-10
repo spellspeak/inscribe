@@ -12,7 +12,7 @@ backend:
 #   fast_model: gpt-6-luna     # checks the teacher's lines
 
 # replay:
-#   source: hf://<dataset>     # the general examples that keep the model's skills
+#   source: hf://spellspeak/replay-pack@0.1   # the general examples that keep the model's skills
 #   to_one: 4                  # replay examples per game example; never below 3
 
 # train:
