@@ -60,7 +60,7 @@ uv run inscribe pull
 uv run inscribe chat        # lists the characters; then: inscribe chat <name>
 ```
 
-`inscribe run` lists the steps with what each will cost, and asks once. A step that already finished with the same inputs is skipped, so after a failure, a closed laptop or an edit to the sheet you run it again. `--from export` starts at a step and `--to data` stops after one. Each step is also a command of its own, in the table above.
+`inscribe run` lists the steps with what each will cost, and asks once. A step that already finished with the same inputs is skipped, and a training or export step still running from an earlier launch is followed. So after a failure, a closed laptop or an edit to the sheet, you run it again. `--from export` starts at a step and `--to data` stops after one. Each step is also a command of its own, in the table above.
 
 `extract`, `data` and `eval` call an outside model and need `OPENAI_API_KEY` in your shell. Every command that spends money says about how much and asks first.
 
@@ -89,7 +89,7 @@ my-game/
   out/                      the GGUF file, the adapter and the report
 ```
 
-`lora.yaml` is short. Anything it leaves out comes from the base model's recipe, the settings that model was measured with. Override one setting for one run with `--set`, for example `inscribe check --set base=sigil-4b`.
+`lora.yaml` is short. Anything it leaves out comes from the base model's recipe, the settings that model was measured with. Override one setting for one run with `--set`, for example `inscribe check --set base=sigil-4b`. [docs/lora-yaml.md](docs/lora-yaml.md) lists every setting.
 
 ```yaml
 game: my_game
@@ -249,6 +249,10 @@ Everything is built by code from the sheet. No model is called, and the same she
 - **A secret in the weights is not safe.** A player can talk it out. Keep real secrets in the game and hand them over when the story allows.
 - **It does not track the game's state.** What has happened, who is in the room and what a thing costs today come from the game, each turn.
 
+## With a coding agent
+
+[skills/train-game-lora/SKILL.md](skills/train-game-lora/SKILL.md) is a skill a coding agent can load. It walks the agent through the path above, and says what stays with you: reading the game sheet, and agreeing to each spend.
+
 ## Layout of this repo
 
 | Folder | What |
@@ -263,6 +267,7 @@ Everything is built by code from the sheet. No model is called, and the same she
 | `src/inscribe/backends/` | What a backend is, Modal as the first one, and a local one the tests use |
 | `src/inscribe/recipes/`, `images.py` | One file per base model with its pinned revision and measured settings, and the pinned images the steps run in |
 | `examples/` | Two complete games: lore, sheet and run-time characters |
+| `docs/`, `skills/` | Every field of the game sheet, every setting of `lora.yaml`, and the skill for coding agents |
 | `tests/` | `uv run pytest` |
 
 ## Licence

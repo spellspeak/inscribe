@@ -196,8 +196,8 @@ def init(name: Annotated[str, typer.Argument(help="The folder to create. Its nam
     typer.echo(f"Made {root}/ with {len(written)} files.")
     typer.echo("Next:")
     typer.echo(f"  1. Write your world in {root}/lore/ (four files, prose).")
-    typer.echo(f"  2. Put the same facts in {root}/sheet/game-sheet.yaml. It starts as a tiny example you replace.")
-    typer.echo(f"  3. cd {root} && inscribe check")
+    typer.echo(f"  2. cd {root} && inscribe extract   drafts sheet/game-sheet.yaml from your prose. Or write the sheet by hand: it starts as a tiny example.")
+    typer.echo("  3. Read the sheet, then: inscribe check")
 
 
 @app.command()
