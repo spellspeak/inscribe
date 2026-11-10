@@ -671,6 +671,23 @@ def _file_digest(path: pathlib.Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else ""
 
 
+def _plan_digest(plan_dir: pathlib.Path) -> str:
+    """What the plan holds, without the stamp of the code that wrote it. A new version of the tool that plans the same
+    scenes, questions and worlds from the same sheet leaves finished steps finished."""
+    path = plan_dir / "plan.yaml"
+    if not path.is_file():
+        return ""
+    held = yaml.safe_load(path.read_text())
+    held.pop("code_fingerprint", None)
+    style = plan_dir / "style-examples.jsonl"
+    if style.is_file() and "style-examples.jsonl" in held.get("files", {}):
+        rows = [json.loads(line) for line in style.read_text().splitlines() if line.strip()]
+        for row in rows:
+            (row.get("provenance") or {}).pop("generator_commit", None)
+        held["files"]["style-examples.jsonl"] = _digest(rows)
+    return _digest(held)
+
+
 def _still_running(proj: Project, backend, stage: str, run_id: str, job: dict):
     """The handle of a step launched earlier with this same job and still running, or None."""
     handle = runs.find_handle(proj, f"{stage}-{run_id}")
@@ -718,7 +735,7 @@ def run(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B00
         raise _fail("No replay pack: replay.source in lora.yaml is empty. Leave it out to use the published pack, or set store:<folder> or hf://<dataset>.")
     # The plan is free and always the same for the same sheet, so it is built first and its hash starts the chain.
     plan(project, set_)
-    plan_fp = _file_digest(proj.plan_dir / "plan.yaml")
+    plan_fp = _plan_digest(proj.plan_dir)
     if last == 0:
         return
     backend = _backend(config, proj)

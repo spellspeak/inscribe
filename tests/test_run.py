@@ -66,6 +66,18 @@ def test_every_step_runs_once_in_order_and_then_nothing_runs(game):
     assert result.exit_code == 0 and calls == [] and "Everything is done with these inputs" in result.output
 
 
+def test_a_new_version_of_the_tool_leaves_finished_steps_finished(game, monkeypatch):
+    root, calls, _ = game
+    assert _run(root, "--yes").exit_code == 0
+    calls.clear()
+    before = (root / "build/plan/plan.yaml").read_text()
+    # the plan is stamped with a hash of the code that wrote it: another version writes another stamp, and the same scenes
+    monkeypatch.setattr("inscribe.plan.build.source_fingerprint", lambda: "anotherbuild")
+    result = _run(root, "--yes")
+    assert (root / "build/plan/plan.yaml").read_text() != before and "anotherbuild" in (root / "build/plan/style-examples.jsonl").read_text()
+    assert result.exit_code == 0 and calls == [] and "Everything is done with these inputs" in result.output, result.output
+
+
 def test_it_asks_once_before_anything_is_spent(game):
     root, calls, _ = game
     result = _run(root, input="n\n")

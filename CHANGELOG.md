@@ -20,3 +20,4 @@
 - The README carries one run on the 4B model, and one run of the second example from a fresh clone through `inscribe run`.
 - The replay pack is published, and `replay.source` defaults to it at a fixed tag: `hf://spellspeak/replay-pack@0.1`.
 - The README's whole path starts with the Modal extra, and the message for a missing `modal` package names it.
+- `inscribe run` no longer treats a new version of the tool as a change to a step's inputs. The same sheet, settings and lines leave finished steps finished.
