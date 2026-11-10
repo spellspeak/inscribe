@@ -112,6 +112,7 @@ class RecipeTrain(_Strict):
     grad_accumulation: int
     max_length: int
     warmup_steps: int
+    min_lr_ratio: float
     gpu: str
 
 

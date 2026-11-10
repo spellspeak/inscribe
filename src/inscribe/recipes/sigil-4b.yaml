@@ -19,6 +19,7 @@ train:
   grad_accumulation: 16
   max_length: 3072
   warmup_steps: 10
+  min_lr_ratio: 0.1
   gpu: H100
 export:
   quant: [Q4_K_M]

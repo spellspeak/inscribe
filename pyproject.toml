@@ -11,6 +11,9 @@ dependencies = [
     "typer>=0.12",
 ]
 
+[project.optional-dependencies]
+modal = ["modal>=1.6"]
+
 [project.scripts]
 inscribe = "inscribe.cli:app"
 

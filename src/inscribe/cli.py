@@ -3,11 +3,16 @@
     inscribe init my-game     start a game project from the template
     inscribe check            validate the game sheet, show what would be built, forecast the run. Free
     inscribe plan             build the scenes, the held-out checks and the world files. Free
+    inscribe train            train the LoRA on the backend. Spends money, and asks first
+    inscribe status           the steps this project has launched
+    inscribe logs             a step's output
+    inscribe stop             stop a running step
 
-The steps that spend money (the teacher, training, export and scoring) are not built yet.
+The teacher, export and scoring steps are not built yet.
 """
 from __future__ import annotations
 
+import json
 import pathlib
 import re
 from importlib import resources
@@ -23,6 +28,9 @@ from inscribe.forecast import forecast
 from inscribe.plan.build import build_plan, load_sheet, lore_coverage, plan_counts
 from inscribe.plan.npcs import load_npcs
 from inscribe.project import CONFIG_NAME, Project, ProjectError, find_project
+from inscribe import runs
+from inscribe.backends.base import read_result
+from inscribe.plan.recall import prompt_rows
 from inscribe.runtime.template import format_by_name
 
 app = typer.Typer(add_completion=False, no_args_is_help=True, help="Train a game LoRA for SpellSpeak Glyph and Sigil from your lore and character sheets.")
@@ -229,6 +237,141 @@ def plan(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = []) -> None:  #
     typer.echo(f"{info['game_id']}: {c['teacher_cases']} scenes for the teacher, {c['style_cases']} lines from the sheet, "
                f"{sum(v for k, v in c['recall'].items() if k in ('lore', 'spoiler', 'dynamic', 'offers'))} held-out questions, {len(c['worlds'])} world files.")
     typer.echo(f"Wrote {proj.plan_dir.relative_to(proj.root)}/ ({len(info['files'])} files). The same sheet always gives the same files.")
+
+
+def _backend(config: Config, proj: Project):
+    backend = runs.make_backend(config, config.game)
+    problems = backend.check()
+    if problems:
+        raise _fail("\n".join(problems))
+    return backend
+
+
+@app.command()
+def train(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B006
+          base: Annotated[str | None, typer.Option(help="Which base model to train. Default: the first in lora.yaml.")] = None,
+          max_steps: Annotated[int | None, typer.Option("--max-steps", help="Stop after this many steps and save nothing: a cheap check of the base, the data and the first losses.")] = None,
+          prompts: Annotated[pathlib.Path | None, typer.Option(help="Questions to answer before and after training ({id, prompt, max_new} per line). Default: the plan's held-out questions.")] = None,
+          yes: Annotated[bool, typer.Option("--yes", "-y", help="Do not ask before spending.")] = False,
+          detach: Annotated[bool, typer.Option("--detach", help="Start the step and return. See it later with `inscribe status` and `inscribe logs`.")] = False) -> None:
+    """Train the LoRA on the backend: fetch the base model, answer the held-out questions, train, merge, answer again."""
+    proj, config = _open(project, set_)
+    name = base or config.base[0]
+    if name not in config.base:
+        raise _fail(f"{name} is not in lora.yaml's base ({', '.join(config.base)}). Add it there, or pass --set base={name}.")
+    recipe = load_recipe(name)
+    backend = _backend(config, proj)
+    store = backend.store()
+
+    local = sorted((proj.build_dir / "data" / "mix").glob("*.jsonl"))
+    on_store = [f for f in store.list(runs.DATA_AT) if f.endswith(".jsonl")]
+    if local:
+        examples = runs.count_rows(local)
+    elif on_store:
+        examples = None
+    else:
+        raise _fail("No training rows: nothing in build/data/mix/ here and nothing on the backend's store. The step that makes them is not built yet.")
+
+    if prompts is not None:
+        if not prompts.is_file():
+            raise _fail(f"{prompts} not found.")
+        rows = [json.loads(line) for line in prompts.read_text().splitlines() if line.strip()]
+        prompts_at = f"prompts/{prompts.name}"
+    elif (proj.plan_dir / "recall.json").is_file():
+        rows = prompt_rows(json.loads((proj.plan_dir / "recall.json").read_text()), recipe.chat_format)
+        prompts_at = "prompts/recall.jsonl"
+    else:
+        raise _fail("No held-out questions: run `inscribe plan` first, or pass --prompts.")
+
+    run_id = f"{name}-check" if max_steps else name
+    job = runs.train_job(config, recipe, prompts_at, max_steps)
+    spec = runs.train_spec(recipe, run_id, max_steps)
+    hours = runs.train_hours(recipe, job, examples or 5000, len(rows))
+    price = backend.hourly_usd(spec)
+    cost = None if price is None else hours * price
+    what = f"{max_steps} steps as a check, nothing saved" if max_steps else f"{job['lora']['epochs']} epochs"
+    typer.echo(f"Train {recipe.title} for {config.game}: {what}.")
+    typer.echo(f"  {examples if examples is not None else 'rows already on the store'} training rows, {len(rows)} questions, one {spec.gpu}")
+    typer.echo(f"  about {hours * 60:.0f} minutes" + (f", about ${cost:.2f} at ${price:g} an hour (an estimate, not a quote)" if cost is not None else ", cost not known"))
+    if cost is not None and cost > config.budget.max_usd:
+        raise _fail(f"That is over the budget in lora.yaml (${config.budget.max_usd:g}). Raise budget.max_usd to go ahead.")
+    if not yes and not typer.confirm("Start it?"):
+        raise typer.Exit(1)
+
+    if local:
+        store.put_many([(p, f"{runs.DATA_AT}/{p.name}") for p in local]) if hasattr(store, "put_many") else [store.put(p, f"{runs.DATA_AT}/{p.name}") for p in local]
+    store.write_text(prompts_at, runs.prompt_file(rows))
+    store.write_text(f"{spec.run_dir}/job.json", json.dumps(job, indent=1) + "\n")
+    handle = backend.launch(spec)
+    runs.save_handle(proj, handle)
+    typer.echo(f"Started train-{run_id} ({handle.id}).")
+    if detach:
+        typer.echo("It keeps running if this terminal closes. See it with `inscribe status` and `inscribe logs`.")
+        return
+    result = runs.follow(backend, handle, typer.echo)
+    _report(handle, result)
+    if not result or not result.get("ok"):
+        raise typer.Exit(1)
+
+
+def _report(handle, result: dict | None) -> None:
+    name = f"{handle.stage}-{handle.run_id}"
+    if result is None:
+        typer.echo(f"{name}: ended without a result. `inscribe logs {name}` shows what it printed.")
+    elif not result.get("ok"):
+        typer.echo(f"{name}: failed after {result.get('seconds')} s: {result.get('error')}")
+    elif handle.stage == "train":
+        r = result["result"]
+        typer.echo(f"{name}: {r['steps']} of {r['total_steps']} steps on {r['examples']} examples in {r['train_s']} s, peak {r['peak_gb']} GB on {r['gpu']}.")
+        typer.echo(f"  first losses {r['loss_first']}" + ("" if r["stopped_early"] else f", last {r['loss_last']}"))
+    else:
+        typer.echo(f"{name}: finished in {result.get('seconds')} s.")
+
+
+@app.command()
+def status(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = []) -> None:  # noqa: B006
+    """The steps this project has launched, and where each one stands."""
+    proj, config = _open(project, set_)
+    handles = runs.load_handles(proj)
+    if not handles:
+        typer.echo("No step has been launched from this project.")
+        return
+    backend = _backend(config, proj)
+    for h in handles:
+        state = backend.status(h)
+        typer.echo(f"{h.stage}-{h.run_id:<22}{state:<11}started {h.started}  {h.gpu or 'cpu'}  {h.id}")
+        if state in ("succeeded", "failed"):
+            _report(h, read_result(backend.store(), h))
+
+
+@app.command()
+def logs(run: Annotated[str | None, typer.Argument(help="Which step, for example train-glyph-2b. Default: the latest.")] = None,
+         project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B006
+         follow: Annotated[bool, typer.Option("--follow", "-f", help="Keep printing while the step runs.")] = False) -> None:
+    """A step's output."""
+    proj, config = _open(project, set_)
+    handle = runs.find_handle(proj, run)
+    if handle is None:
+        raise _fail("No such step. `inscribe status` lists them.")
+    for line in _backend(config, proj).logs(handle, follow=follow):
+        typer.echo(line)
+
+
+@app.command()
+def stop(run: Annotated[str | None, typer.Argument(help="Which step. Default: every running step of this project.")] = None,
+         project: ProjectOpt = pathlib.Path("."), set_: SetOpt = []) -> None:  # noqa: B006
+    """Stop a running step. What it had written to the store stays there."""
+    proj, config = _open(project, set_)
+    backend = _backend(config, proj)
+    handles = [h for h in runs.load_handles(proj) if run is None or run in (f"{h.stage}-{h.run_id}", h.stage, h.run_id)]
+    stopped = 0
+    for h in handles:
+        if backend.status(h) == "running":
+            backend.stop(h)
+            typer.echo(f"Stopped {h.stage}-{h.run_id}.")
+            stopped += 1
+    if not stopped:
+        typer.echo("Nothing was running.")
 
 
 if __name__ == "__main__":

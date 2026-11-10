@@ -8,7 +8,7 @@ You write the lore. Inscribe turns it into training scenes, has a teacher model 
 
 ## Status
 
-This is an early build. The steps that spend no money work today. The steps that train do not exist yet.
+This is an early build. The steps that spend no money work today. Training runs on Modal as a short check. A whole training run, and the steps around it, are not finished.
 
 | Step | Command | What it does | Status |
 |---|---|---|---|
@@ -17,7 +17,8 @@ This is an early build. The steps that spend no money work today. The steps that
 | Plan | `inscribe plan` | Builds the training scenes, the held-out questions and the world files | works |
 | Extract | | Reads prose lore into a game sheet for you to check | not built |
 | Data | | A teacher model answers the scenes. The answers are checked and mixed with general examples | not built |
-| Train | | Trains the LoRA and merges it | not built |
+| Train | `inscribe train` | Trains the LoRA on your Modal account and merges it | a five-step check runs; a whole run is not verified yet |
+| Follow | `inscribe status`, `logs`, `stop` | The steps a project has launched | works |
 | Export | | Makes the GGUF file | not built |
 | Score | | Lore recalled, spoilers told early, skills kept | not built |
 
@@ -80,6 +81,21 @@ budget:
   max_usd: 80
 ```
 
+## Where the GPU steps run
+
+The steps that need a GPU run on your own Modal account. Each step is one container that starts, does its work and ends, so nothing stays running. Its files live on a Modal volume named after the game, which is also where the base model is cached. A step keeps running if your terminal closes: `inscribe status` and `inscribe logs` find it again.
+
+Install the Modal extra and sign in once:
+
+```bash
+uv sync --extra modal
+uv run modal token new
+```
+
+`inscribe train` says what it will cost and asks before it starts. `--max-steps 5` runs five steps and saves nothing: it shows that the base model loads, the data reads and the first losses look right, for well under a dollar.
+
+The same weights give slightly different numbers on different machines. Two identical five-step checks gave first losses up to 0.003 apart, and worded 88 of 620 test replies differently. Compare runs with that in mind.
+
 ## What `plan` builds
 
 Everything is built by code from the sheet. No model is called, and the same sheet always gives the same files.
@@ -106,7 +122,9 @@ Everything is built by code from the sheet. No model is called, and the same she
 | `src/inscribe/plan/` | The plan step: scenes, world files, held-out questions and their scoring |
 | `src/inscribe/scenarios/`, `context/`, `schemas/`, `sheets/` | Scenario generators, the view a character gets of the world, the file formats |
 | `src/inscribe/runtime/` | The prompt format, the same code that ships with the models |
-| `src/inscribe/recipes/` | One file per base model: its pinned revision and measured settings |
+| `src/inscribe/train/`, `stages/` | The training step, and the small program that runs any step inside its container |
+| `src/inscribe/backends/` | What a backend is, Modal as the first one, and a local one the tests use |
+| `src/inscribe/recipes/`, `images.py` | One file per base model with its pinned revision and measured settings, and the pinned images the steps run in |
 | `examples/` | Two complete games: lore, sheet and run-time characters |
 | `tests/` | `uv run pytest` |
 
