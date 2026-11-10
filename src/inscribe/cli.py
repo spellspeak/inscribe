@@ -671,13 +671,19 @@ def _file_digest(path: pathlib.Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else ""
 
 
-def _adopt(proj: Project, backend, stage: str, run_id: str, job: dict) -> bool:
-    """A step launched earlier with this same job and still running is followed, not launched again."""
+def _still_running(proj: Project, backend, stage: str, run_id: str, job: dict):
+    """The handle of a step launched earlier with this same job and still running, or None."""
     handle = runs.find_handle(proj, f"{stage}-{run_id}")
     if handle is None or backend.status(handle) != "running":
-        return False
+        return None
     on_store = backend.store().read_text(f"{stage}/{run_id}/job.json")
-    if on_store is None or json.loads(on_store) != job:
+    return handle if on_store is not None and json.loads(on_store) == job else None
+
+
+def _adopt(proj: Project, backend, stage: str, run_id: str, job: dict) -> bool:
+    """A step launched earlier with this same job and still running is followed, not launched again."""
+    handle = _still_running(proj, backend, stage, run_id, job)
+    if handle is None:
         return False
     typer.echo(f"{stage}-{run_id} is already running from an earlier launch. Following it.")
     result = runs.follow(backend, handle, typer.echo)
@@ -763,6 +769,8 @@ def run(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B00
         cost = usd.get("teacher" if kind == "data" else label)
         if not runs_now:
             note = "done with these inputs, skipped"
+        elif kind in ("train", "export") and _still_running(proj, backend, kind, label.split()[1], jobs[label.split()[1]][kind == "export"]):
+            note = "already running from an earlier launch, followed"
         elif kind == "mix":
             note = "a few cents"
         elif kind == "eval":

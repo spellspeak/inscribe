@@ -137,4 +137,5 @@ def test_a_step_still_running_from_an_earlier_launch_is_followed_not_launched_ag
     result = _run(root, "--to", "train", "--yes", "--set", "base=glyph-2b")
     assert result.exit_code == 0, result.output
     assert "train-glyph-2b is already running from an earlier launch. Following it." in result.output and calls == []
+    assert "train glyph-2b    already running from an earlier launch, followed" in result.output and "GPU time for the steps to run: about $0.00" in result.output
     assert backend.store().read_text("train/glyph-2b/inputs.sha256"), "and it is stamped as done"
