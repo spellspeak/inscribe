@@ -81,6 +81,23 @@ budget:
   max_usd: 80
 ```
 
+## On the example game
+
+One run, on the 2B model, through `inscribe train` and `inscribe export`. The 5,355 training rows came from the pipeline this tool is lifted from, because the step that makes them is not in the tool yet.
+
+| Held-out questions | Base model, before training | After, from the 2.91 GB file |
+|---|---:|---:|
+| Important lore items recalled, of 33 | 0 | 31 |
+| All lore items recalled, of 98 | 0 | 75 |
+| Sayings given word for word, of 20 questions | 0 | 13 |
+| A later story stage given away, of 36 questions (by key words) | 0 | 0 |
+| Run-time characters answering from the lore, of 36 questions | 0 | 24, and no secret told |
+| Prices read from the character's own sheet, of 38 questions | 38 | 38 |
+
+"Before" is the base model at full precision, in the training container. The training step took 70 minutes on one H100, 55 of them training. The export took 14 minutes on one L4.
+
+The tool does not yet check that the model kept its general skills. On a general test of ours that is not public yet, this LoRA passed 199 of 309 scenes, and the base model 205, a difference inside the noise of that test.
+
 ## Where the GPU steps run
 
 The steps that need a GPU run on your own Modal account. Each step is one container that starts, does its work and ends, so nothing stays running. Its files live on a Modal volume named after the game, which is also where the base model is cached. A step keeps running if your terminal closes: `inscribe status` and `inscribe logs` find it again.
