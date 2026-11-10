@@ -18,6 +18,7 @@ Job (`job.json` in the run folder):
     data         folder on the store with the training rows (*.jsonl)
     prompts      file on the store with the questions ({id, prompt, max_new} per line), or null
     max_steps    stop after this many optimizer steps and save nothing, or null for the whole run
+    keep         with max_steps: save, merge and answer again all the same, to rehearse the whole path
 """
 from __future__ import annotations
 
@@ -209,7 +210,7 @@ def run(work: pathlib.Path, run_dir: pathlib.Path, job: dict) -> dict:
         "base": job["base"], "questions": len(prompts), "answers_before": f"{run_dir.name}/answers-before.jsonl" if before else None,
         "stopped_early": bool(max_steps),
     }
-    if max_steps:
+    if max_steps and not job.get("keep"):
         result["total_s"] = round(time.perf_counter() - t_start)
         return result
 

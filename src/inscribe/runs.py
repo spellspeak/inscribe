@@ -55,7 +55,7 @@ def find_handle(project: Project, name: str | None) -> RunHandle | None:
     return handles[-1] if handles else None
 
 
-def train_job(config: Config, recipe: Recipe, prompts: str | None, max_steps: int | None) -> dict:
+def train_job(config: Config, recipe: Recipe, prompts: str | None, max_steps: int | None, keep: bool = False) -> dict:
     """The training step's parameters: the recipe's settings, with the config's overrides."""
     t = recipe.train
     if t.batch_size != 1:
@@ -67,7 +67,7 @@ def train_job(config: Config, recipe: Recipe, prompts: str | None, max_steps: in
                      "lr": config.train.learning_rate or t.learning_rate, "epochs": config.train.epochs or t.epochs,
                      "grad_accum": t.grad_accumulation, "warmup_steps": t.warmup_steps, "min_lr_ratio": t.min_lr_ratio,
                      "seed": config.seed, "max_len": t.max_length},
-            "data": DATA_AT, "prompts": prompts, "max_steps": max_steps}
+            "data": DATA_AT, "prompts": prompts, "max_steps": max_steps, "keep": bool(keep and max_steps)}
 
 
 def train_spec(recipe: Recipe, run_id: str, max_steps: int | None) -> StageSpec:
@@ -79,8 +79,24 @@ def train_hours(recipe: Recipe, job: dict, examples: int, questions: int) -> flo
     """An estimate of the training step's GPU time, from the recipe's one measured run."""
     lora = job["lora"]
     sequences = min(examples * lora["epochs"], (job["max_steps"] or 10**9) * lora["grad_accum"])
-    answers = questions * SECONDS_PER_QUESTION * (1 if job["max_steps"] else 2)
+    answers = questions * SECONDS_PER_QUESTION * (1 if job["max_steps"] and not job.get("keep") else 2)
     return (BASE_SECONDS + answers + sequences * recipe.measured.train_seconds_per_example_epoch) / 3600
+
+
+def export_job(config: Config, recipe: Recipe, train_run: str, imatrix: str | None, prompts: str | None) -> dict:
+    """The export step's parameters. The files are named after the game and the base model."""
+    return {"merged": f"train/{train_run}/merged", "chat_format": recipe.chat_format, "name": f"{config.game}-{recipe.name}".replace("_", "-"),
+            "title": f"{config.game} on {recipe.title}", "quant": list(config.export.quant or recipe.export.quant),
+            "embeddings": recipe.export.embeddings, "imatrix": imatrix, "prompts": prompts}
+
+
+def export_spec(recipe: Recipe, run_id: str) -> StageSpec:
+    return StageSpec(stage="export", run_id=run_id, image=images.EXPORT, gpu=recipe.export.gpu, cpu=4.0, memory_mb=32768, timeout_s=3 * 60 * 60)
+
+
+def export_hours(job: dict, questions: int) -> float:
+    """An estimate: convert and importance matrix, then quantize and answer per file. Not yet measured alone."""
+    return (900 + len(job["quant"]) * (300 + questions * 1.0)) / 3600
 
 
 def follow(backend: Backend, handle: RunHandle, echo: Callable[[str], None], poll_s: float = 10.0) -> dict | None:

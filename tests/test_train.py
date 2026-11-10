@@ -59,3 +59,20 @@ def test_the_step_asks_for_the_recipes_machine():
     job = train_job(Config(game="g"), recipe, None, None)
     assert train_hours(recipe, job, 5355, 620) == pytest.approx((420 + 620 + 5355 * 3 * 0.2815) / 3600)
     assert train_hours(recipe, {**job, "max_steps": 5}, 5355, 620) < 0.25
+
+
+def test_the_export_job_names_the_files_after_the_game_and_the_base():
+    from inscribe.export.gguf import calibration_text, quantize_args, readable_config
+    from inscribe.runs import export_job, export_spec
+
+    recipe = load_recipe("glyph-2b")
+    job = export_job(Config(game="my_game"), recipe, "glyph-2b", "plan/imatrix.txt", "prompts/recall.jsonl")
+    assert job["name"] == "my-game-glyph-2b" and job["quant"] == ["Q5_K_M"] and job["embeddings"] == "q4_k" and job["merged"] == "train/glyph-2b/merged"
+    assert export_job(Config(game="g", export={"quant": ["Q4_K_M", "Q8_0"]}), recipe, "glyph-2b", None, None)["quant"] == ["Q4_K_M", "Q8_0"]
+    spec = export_spec(recipe, "glyph-2b")
+    assert spec.gpu == "L4" and spec.image.base.endswith("full-cuda-b11146") and spec.image.clear_entrypoint
+    assert quantize_args("q4_k") == ["--tensor-type", "per_layer_token_embd=q4_k", "--token-embedding-type", "q4_k"] and quantize_args(None) == []
+    text = calibration_text("gemma4-instruct")
+    assert text.count("<|turn>system") >= 160 and "<|im_start|>" not in text
+    cfg = readable_config({"sot_token": "<|turn>", "bos_token": "<bos>", "extra_special_tokens": ["<a>", "<gone>"], "model_max_length": 9}, {"<|turn>", "<a>", "<bos>"})
+    assert cfg == {"sot_token": "<|turn>", "bos_token": "<bos>", "model_max_length": 9, "additional_special_tokens": ["<|turn>", "<a>"]}

@@ -4,11 +4,12 @@
     inscribe check            validate the game sheet, show what would be built, forecast the run. Free
     inscribe plan             build the scenes, the held-out checks and the world files. Free
     inscribe train            train the LoRA on the backend. Spends money, and asks first
+    inscribe export           make the GGUF file and answer the held-out questions with it. Spends money, and asks first
     inscribe status           the steps this project has launched
     inscribe logs             a step's output
     inscribe stop             stop a running step
 
-The teacher, export and scoring steps are not built yet.
+The teacher and scoring steps are not built yet.
 """
 from __future__ import annotations
 
@@ -251,6 +252,7 @@ def _backend(config: Config, proj: Project):
 def train(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B006
           base: Annotated[str | None, typer.Option(help="Which base model to train. Default: the first in lora.yaml.")] = None,
           max_steps: Annotated[int | None, typer.Option("--max-steps", help="Stop after this many steps and save nothing: a cheap check of the base, the data and the first losses.")] = None,
+          keep: Annotated[bool, typer.Option("--keep", help="With --max-steps: save, merge and answer again all the same. A rehearsal of the whole path.")] = False,
           prompts: Annotated[pathlib.Path | None, typer.Option(help="Questions to answer before and after training ({id, prompt, max_new} per line). Default: the plan's held-out questions.")] = None,
           yes: Annotated[bool, typer.Option("--yes", "-y", help="Do not ask before spending.")] = False,
           detach: Annotated[bool, typer.Option("--detach", help="Start the step and return. See it later with `inscribe status` and `inscribe logs`.")] = False) -> None:
@@ -284,12 +286,12 @@ def train(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B
         raise _fail("No held-out questions: run `inscribe plan` first, or pass --prompts.")
 
     run_id = f"{name}-check" if max_steps else name
-    job = runs.train_job(config, recipe, prompts_at, max_steps)
+    job = runs.train_job(config, recipe, prompts_at, max_steps, keep)
     spec = runs.train_spec(recipe, run_id, max_steps)
     hours = runs.train_hours(recipe, job, examples or 5000, len(rows))
     price = backend.hourly_usd(spec)
     cost = None if price is None else hours * price
-    what = f"{max_steps} steps as a check, nothing saved" if max_steps else f"{job['lora']['epochs']} epochs"
+    what = (f"{max_steps} steps as a " + ("rehearsal, everything saved" if job["keep"] else "check, nothing saved")) if max_steps else f"{job['lora']['epochs']} epochs"
     typer.echo(f"Train {recipe.title} for {config.game}: {what}.")
     typer.echo(f"  {examples if examples is not None else 'rows already on the store'} training rows, {len(rows)} questions, one {spec.gpu}")
     typer.echo(f"  about {hours * 60:.0f} minutes" + (f", about ${cost:.2f} at ${price:g} an hour (an estimate, not a quote)" if cost is not None else ", cost not known"))
@@ -314,6 +316,62 @@ def train(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B
         raise typer.Exit(1)
 
 
+@app.command()
+def export(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B006
+           base: Annotated[str | None, typer.Option(help="Which base model's training run to export. Default: the first in lora.yaml.")] = None,
+           run: Annotated[str | None, typer.Option(help="The training run to export, as `inscribe status` names it without `train-`. Default: the base's whole run.")] = None,
+           prompts: Annotated[pathlib.Path | None, typer.Option(help="Questions to answer with each file ({id, prompt, max_new} per line). Default: the plan's held-out questions.")] = None,
+           yes: Annotated[bool, typer.Option("--yes", "-y", help="Do not ask before spending.")] = False,
+           detach: Annotated[bool, typer.Option("--detach", help="Start the step and return.")] = False) -> None:
+    """Make the GGUF file a game ships: convert the trained model, quantize it with the game's own prompts in mind, and answer the held-out questions with the result."""
+    proj, config = _open(project, set_)
+    name = base or config.base[0]
+    if name not in config.base:
+        raise _fail(f"{name} is not in lora.yaml's base ({', '.join(config.base)}). Add it there, or pass --set base={name}.")
+    recipe = load_recipe(name)
+    backend = _backend(config, proj)
+    store = backend.store()
+    run_id = run or name
+    trained = read_result(store, type("Run", (), {"run_dir": f"train/{run_id}"}))
+    if not trained or not trained.get("ok") or not trained["result"].get("merged"):
+        raise _fail(f"No finished training run {run_id} with a merged model on the store. Run `inscribe train` first.")
+    if not (proj.plan_dir / "imatrix.txt").is_file():
+        raise _fail("No build/plan/imatrix.txt: run `inscribe plan` first.")
+    if prompts is not None:
+        if not prompts.is_file():
+            raise _fail(f"{prompts} not found.")
+        rows = [json.loads(line) for line in prompts.read_text().splitlines() if line.strip()]
+        prompts_at = f"prompts/{prompts.name}"
+    else:
+        rows = prompt_rows(json.loads((proj.plan_dir / "recall.json").read_text()), recipe.chat_format)
+        prompts_at = "prompts/recall.jsonl"
+    job = runs.export_job(config, recipe, run_id, "plan/imatrix.txt", prompts_at)
+    spec = runs.export_spec(recipe, run_id)
+    hours = runs.export_hours(job, len(rows))
+    price = backend.hourly_usd(spec)
+    cost = None if price is None else hours * price
+    typer.echo(f"Export {recipe.title} for {config.game}: {', '.join(job['quant'])}, embeddings at {job['embeddings']}.")
+    typer.echo(f"  {len(rows)} questions per file, one {spec.gpu}")
+    typer.echo(f"  about {hours * 60:.0f} minutes" + (f", about ${cost:.2f} at ${price:g} an hour (an estimate, not a quote)" if cost is not None else ", cost not known"))
+    if cost is not None and cost > config.budget.max_usd:
+        raise _fail(f"That is over the budget in lora.yaml (${config.budget.max_usd:g}). Raise budget.max_usd to go ahead.")
+    if not yes and not typer.confirm("Start it?"):
+        raise typer.Exit(1)
+    store.put(proj.plan_dir / "imatrix.txt", "plan/imatrix.txt")
+    store.write_text(prompts_at, runs.prompt_file(rows))
+    store.write_text(f"{spec.run_dir}/job.json", json.dumps(job, indent=1) + "\n")
+    handle = backend.launch(spec)
+    runs.save_handle(proj, handle)
+    typer.echo(f"Started export-{run_id} ({handle.id}).")
+    if detach:
+        typer.echo("It keeps running if this terminal closes. See it with `inscribe status` and `inscribe logs`.")
+        return
+    result = runs.follow(backend, handle, typer.echo)
+    _report(handle, result)
+    if not result or not result.get("ok"):
+        raise typer.Exit(1)
+
+
 def _report(handle, result: dict | None) -> None:
     name = f"{handle.stage}-{handle.run_id}"
     if result is None:
@@ -324,6 +382,9 @@ def _report(handle, result: dict | None) -> None:
         r = result["result"]
         typer.echo(f"{name}: {r['steps']} of {r['total_steps']} steps on {r['examples']} examples in {r['train_s']} s, peak {r['peak_gb']} GB on {r['gpu']}.")
         typer.echo(f"  first losses {r['loss_first']}" + ("" if r["stopped_early"] else f", last {r['loss_last']}"))
+    elif handle.stage == "export":
+        for quant, f in result["result"]["files"].items():
+            typer.echo(f"{name}: {f['file'].rsplit('/', 1)[-1]}, {f['bytes'] / 1e9:.2f} GB" + (f", answered on the GPU: {f['on_gpu']}" if "on_gpu" in f else ""))
     else:
         typer.echo(f"{name}: finished in {result.get('seconds')} s.")
 

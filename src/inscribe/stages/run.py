@@ -21,6 +21,7 @@ import traceback
 STAGES = {
     "smoke": "inscribe.stages.smoke:run",
     "train": "inscribe.train.lora:run",
+    "export": "inscribe.export.gguf:run",
 }
 
 

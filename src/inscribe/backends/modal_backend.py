@@ -124,8 +124,7 @@ class ModalBackend:
         with modal.enable_output():
             sandbox = modal.Sandbox.create(
                 *spec.command(WORK), app=app, image=self.image(spec.image), volumes={WORK: self.volume()}, env=dict(spec.env) or None,
-                secrets=secrets, gpu=spec.gpu, cpu=spec.cpu, memory=spec.memory_mb, timeout=spec.timeout_s, workdir=WORK,
-                environment_name=self.environment)
+                secrets=secrets, gpu=spec.gpu, cpu=spec.cpu, memory=spec.memory_mb, timeout=spec.timeout_s, workdir=WORK)
         return RunHandle(backend=self.name, stage=spec.stage, run_id=spec.run_id, id=sandbox.object_id, started=now(), gpu=spec.gpu,
                          where={"app": self.app_name, "store": self.volume_name, "environment": self.environment or ""})
 
