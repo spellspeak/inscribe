@@ -166,6 +166,20 @@ def pull_list(store, base: str, adapter: bool = False) -> list[tuple[str, str]]:
     return wanted
 
 
+def small_files(store, base: str) -> list[tuple[str, str]]:
+    """The results and answers of one base model's training and export runs: what the scoring step reads. No weights."""
+    return [(remote, local) for remote, local in pull_list(store, base) if local.startswith(f"{base}/")]
+
+
+def held_out_rows(recall_bundle: dict, chat_format: str) -> list[dict]:
+    """What the training step answers before and after training: the retention questions, then the game's held-out ones."""
+    from inscribe.evaluate.retention import prompt_rows as retention_rows
+    from inscribe.plan.recall import prompt_rows
+    from inscribe.runtime.template import format_by_name
+
+    return retention_rows(format_by_name(chat_format)) + prompt_rows(recall_bundle, chat_format)
+
+
 def count_rows(paths: list[pathlib.Path]) -> int:
     return sum(1 for p in paths for line in p.read_text().splitlines() if line.strip())
 

@@ -8,22 +8,25 @@ You write the lore. Inscribe turns it into training scenes, has a teacher model 
 
 ## Status
 
-This is an early build. From a game sheet it plans the data, has a teacher write the training lines and checks them, mixes them, trains on Modal and exports a GGUF file. Two steps are missing: the one that reads prose lore into a sheet, and the one that scores the result. The replay pack the mix draws on is not published yet.
+This is an early build. Every step from prose lore to a scored GGUF file works: it reads your lore into a game sheet for you to check, plans the data, has a teacher write the training lines and checks them, mixes them, trains on Modal, exports a GGUF file, scores it and writes a report card.
+
+Two things are missing. The replay pack the mix draws on is not published yet. And no single command runs the steps in order yet: you run them one at a time.
 
 | Step | Command | What it does | Status |
 |---|---|---|---|
 | Start | `inscribe init` | Makes a game project from a template | works |
+| Extract | `inscribe extract` | Reads prose lore into a game sheet for you to check | works |
 | Check | `inscribe check` | Validates the game sheet, shows what would be built, forecasts the run | works |
 | Plan | `inscribe plan` | Builds the training scenes, the held-out questions and the world files | works |
-| Extract | | Reads prose lore into a game sheet for you to check | not built |
 | Data | `inscribe data` | A teacher model answers the scenes on your Modal account, and the answers are checked | works |
 | Mix | `inscribe mix` | Mixes the game's rows with general rows, so the model keeps the skills it had | works; the replay pack it draws on is not published yet |
 | Train | `inscribe train` | Trains the LoRA on your Modal account and merges it | works |
-| Follow | `inscribe status`, `logs`, `stop`, `pull` | The steps a project has launched, and their files | works |
 | Export | `inscribe export` | Makes the GGUF file and answers the held-out questions with it | works |
-| Score | | Lore recalled, spoilers told early, skills kept | not built |
+| Score | `inscribe eval` | Lore recalled, later story told early, the character's voice, skills kept. Writes the report card | works |
+| Talk | `inscribe chat` | Talk to a character with the exported file, on your machine | works |
+| Follow | `inscribe status`, `logs`, `stop`, `pull` | The steps a project has launched, and their files | works |
 
-Until Extract exists you write the game sheet by hand. [docs/game-sheet.md](docs/game-sheet.md) describes every field.
+`inscribe extract` drafts the game sheet from your prose, or you write it by hand. Either way, read it before you train: every later step works from the sheet. [docs/game-sheet.md](docs/game-sheet.md) describes every field.
 
 ## Try it
 
@@ -46,7 +49,24 @@ uv run inscribe check
 uv run inscribe check --lore
 ```
 
-`check` on that game prints:
+The whole path, one step at a time, once your prose is in `lore/`:
+
+```bash
+uv run inscribe extract     # prose to a game sheet. Read the sheet before going on
+uv run inscribe check
+uv run inscribe plan
+uv run inscribe data        # from here on the steps use your Modal account
+uv run inscribe mix
+uv run inscribe train
+uv run inscribe export
+uv run inscribe eval        # writes out/report.md
+uv run inscribe pull
+uv run inscribe chat           # lists the characters; then: inscribe chat <name>
+```
+
+`extract`, `data` and `eval` call an outside model and need `OPENAI_API_KEY` in your shell. Every step that spends money says about how much and asks first.
+
+`check` on the example game prints:
 
 ```
 brackenhythe (game-sheet-0.2)
@@ -84,7 +104,7 @@ budget:
 
 ## On the example game
 
-One run, on the 2B model, through `inscribe data`, `mix`, `train` and `export`.
+One run, on the 2B model, through `inscribe data`, `mix`, `train`, `export` and `eval`, from the game sheet in `examples/brackenhythe`.
 
 | Step | What came out | Time |
 |---|---|---|
@@ -92,6 +112,7 @@ One run, on the 2B model, through `inscribe data`, `mix`, `train` and `export`.
 | Mix | 5,400 rows: 740 of the game's, 4,660 replayed | seconds |
 | Train | The LoRA and the merged model | 80 minutes on one H100, 64 of them training |
 | Export | A 2.91 GB file | 12 minutes on one L4 |
+| Score | The report card | a minute on your machine, and the judge, about $0.38 |
 
 | Held-out questions | Base model, before training | After, from the 2.91 GB file |
 |---|---:|---:|
@@ -104,7 +125,17 @@ One run, on the 2B model, through `inscribe data`, `mix`, `train` and `export`.
 
 "Before" is the base model at full precision, in the training container.
 
-The tool does not yet check that the model kept its general skills. On a general test of ours that is not public yet, this LoRA passed 203 of 309 scenes, and the base model 205, a difference inside the noise of that test.
+`inscribe eval` wrote this card for the run:
+
+| Check | Line | This run | |
+|---|---|---|---|
+| Important lore recalled | at least 80% | 32 of 33 | met |
+| Later story told early | none | 0 of 36 | met |
+| Run-time characters tell no secret | none told | 0 told in 36 replies | met |
+| Sounds more like the character than the base model | preferred beyond chance | preferred in 54 of 80 pairs, the base in 20, 6 ties | met |
+| Keeps what the base model could do | no gated set lost | know-how 25 to 25 of 29, following the player 11 to 10 of 12 | met |
+
+The card cannot see a small loss of general skill. On a general test of ours that is not public yet, this LoRA passed 203 of 309 scenes, and the base model 205, a difference inside the noise of that test.
 
 This is one run. A second LoRA, trained with the same settings on lines from the pipeline this tool is lifted from, recalled 31 of the 33 important items and passed 199 of the 309 scenes. Expect that much spread between two runs.
 
@@ -126,6 +157,64 @@ The general rows come from a replay pack, about 55,000 rows already rendered as 
 `build/data/rejected.jsonl` holds every dropped line with its reason. Read some of the kept lines before you train: the model will talk like them. On the example game, 2 of the 727 kept lines open by saying the player's question back, a teacher habit the checks only catch when the question is in quotes.
 
 `inscribe data --limit 20` writes lines for 20 scenes only, as a rehearsal. The teacher still takes about four minutes to load.
+
+## What `extract` does
+
+`inscribe extract` reads `lore/world.md`, `characters.md`, `story.md` and `style.md` and drafts `sheet/game-sheet.yaml`.
+
+- **Three calls to a strong model**, named in `lora.yaml` as `llm.strong_model`. The first reads the world and the story. The second reads the characters, and never sees the story file. The third copies the speech examples. Each answer comes back in a fixed shape.
+- **Every answer is checked** before the next call: the sheet must validate, a world must build from it, and none of the words your story says must not be said early may appear anywhere in it. A failed check goes back to the model once with the error. If it fails again, the command stops and writes nothing.
+- **It reports what it left out.** `sheet/extract-report.md` lists what your documents say that the sheet cannot hold, such as writers' notes and anything that changes as the story moves. It also lists items to look at first.
+- **It never replaces your work.** A sheet you have edited is left alone, and the new draft goes beside it as `game-sheet.extracted.yaml`.
+
+On the example game's 56,000 characters of lore it took a little over three minutes and $0.26, with no repair needed. `inscribe extract --dry-run` shows the forecast and sends nothing.
+
+The reader is told never to invent, and to copy your own words. It can still file a fact in the wrong place, and two runs do not give the same sheet. Two runs on the example game's lore agreed on the 6 characters, all 28 places and things, the 5 story stages, the 13 speech examples and the 5 wordings to be said exactly. They shared 128 lore items word for word, of 156 and 158. One found 20 secrets and the other 16. One returned 18 world rules and the other 46: it had cut a section of plain facts into single sentences and filed them as rules. The report flags a long rule list and a rule that leans on the line before it. Read the whole sheet all the same.
+
+`npcs.yaml` is never read: characters your game makes up at run time must not enter the sheet.
+
+## What `eval` checks
+
+`inscribe eval` scores the answers the training and export steps left behind, and writes `out/report.md`. It needs no GPU.
+
+| Line on the card | How it is measured |
+|---|---|
+| Important lore recalled, at least 80% | Held-out phrasings of each lore item marked `importance: high`, answered by the exported file, scored by key words |
+| Later story told early, none | A judge model reads each reply to a what-comes-next question, with the story so far and the stages still to come |
+| Run-time characters tell no secret | Characters given only in the prompt are asked about the world. No reply may use the key words of a core character's secret |
+| Sounds more like the character than the base model | The judge sees the base model's reply and the LoRA's to the same line, unlabelled and in a random order, 80 pairs. Met when the LoRA wins beyond chance |
+| Keeps what the base model could do | 78 general questions, answered before and after training. Not met when know-how loses more than 3 of 29, or following the player more than 2 of 12. For Sigil 4B, real-world facts count too |
+
+The card also gives all lore items, the wordings to be said exactly, prices, and sample replies for every line: lore the model now says, lore it missed, each flagged spoiler with the judge's reason, and every general question it lost with both answers. When a line is not met it says what to try first.
+
+The two judged lines cost about $0.40 a model on the example game. `inscribe eval --no-judge` skips them, costs nothing, and marks them not judged.
+
+How far to trust it:
+
+- **The key-word lines are exact.** We scored an earlier LoRA of the example game with this step and with the pipeline it is lifted from. Every key-word number and the retention verdict were the same.
+- **The judge is a model, and moves a little.** On the same replies, two reads flagged the same single line of 36 on one set and none on the other. They preferred the LoRA's voice in 53 of 80 pairs and in 51.
+- **Key words are blunt.** In the example run the model answered a question about storm clouds with "we're getting a thunderstorm" and lost the point, because the key is "storm" as a whole word. The card prints the lost questions so you can judge them yourself.
+- **It does not check general skill or leaks into other games.** The card says so on every run. See [What a game LoRA does not do](#what-a-game-lora-does-not-do).
+
+## Talk to a character
+
+```bash
+uv run inscribe pull
+uv run inscribe chat maren
+```
+
+`chat` runs the exported file on your own machine. It needs `llama-server` from [llama.cpp](https://github.com/ggml-org/llama.cpp), build b11146 or later, on your PATH. The prompt is built as in training: what the character knows from the sheet, then the conversation so far. `--stage 3` puts the character at the third story stage. `--say "..."` says one line and prints the reply, for scripts.
+
+From the example run's 2.91 GB file, on an Apple-silicon laptop:
+
+```
+Player: What's a pint cost?
+Maren Tolliver: One pip, duck.
+Player: And who runs the Tallyhouse?
+Maren Tolliver: The Reckoners run it.
+Player: Can I pay with my phone?
+Maren Tolliver: What is a phone?
+```
 
 ## Where the GPU steps run
 
@@ -150,7 +239,7 @@ Everything is built by code from the sheet. No model is called, and the same she
 
 - **Scenes for the teacher** (`scenarios.jsonl`). Players asking about the lore in many phrasings. Things from our world the characters should not know, and things they should. Each story stage, with the later stages forbidden. Secrets, asked by someone who may hear them and someone who may not. Ordinary talk. About a quarter have a misheard twin, as speech recognition would garble them.
 - **Lines from the sheet** (`style-examples.jsonl`). Your speech examples, trained on as written.
-- **Held-out questions** (`recall.json`). Different phrasings from the training scenes, with answer keys, used only to score the trained model.
+- **Held-out questions** (`recall.json`). Different phrasings from the training scenes, with answer keys, used only to score the trained model. `inscribe train` answers them before and after training, together with 78 general questions that show what the model kept.
 - **World files** (`worlds/`). The game at each story stage, and a copy with each character's confidants in the room.
 - **Quantization text** (`imatrix.txt`). The game's own prompts, so the small file keeps what matters to this game.
 
@@ -168,9 +257,10 @@ Everything is built by code from the sheet. No model is called, and the same she
 |---|---|
 | `src/inscribe/cli.py`, `config.py`, `project.py` | The command, `lora.yaml`, where a project's files are |
 | `src/inscribe/plan/` | The plan step: scenes, world files, held-out questions and their scoring |
-| `src/inscribe/scenarios/`, `context/`, `schemas/`, `sheets/` | Scenario generators, the view a character gets of the world, the file formats |
+| `src/inscribe/scenarios/`, `context/`, `schemas/`, `sheets/` | Scenario generators, the view a character gets of the world, the file formats, and the lore reader |
 | `src/inscribe/runtime/` | The prompt format, the same code that ships with the models |
-| `src/inscribe/data/`, `judges/` | The teacher, the checks on its lines, the judge's questions, and the mix |
+| `src/inscribe/data/`, `judges/` | The teacher, the checks on its lines, the two outside models' clients, and the mix |
+| `src/inscribe/evaluate/`, `chat.py` | The scoring step and its report card, and talking to a character with the exported file |
 | `src/inscribe/train/`, `export/`, `stages/` | The training and export steps, and the small program that runs any step inside its container |
 | `src/inscribe/backends/` | What a backend is, Modal as the first one, and a local one the tests use |
 | `src/inscribe/recipes/`, `images.py` | One file per base model with its pinned revision and measured settings, and the pinned images the steps run in |

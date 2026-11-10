@@ -36,6 +36,8 @@ class LLMConfig(_Strict):
 
     provider: Literal["openai"] = "openai"
     key_env: str = "OPENAI_API_KEY"
+    strong_model: str = "gpt-6.1-sol"  # reads lore into a sheet; judges spoilers and style
+    fast_model: str = "gpt-6-luna"  # checks the teacher's lines
 
 
 class ReplayConfig(_Strict):

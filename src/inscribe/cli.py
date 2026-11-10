@@ -1,18 +1,19 @@
 """The `inscribe` command.
 
     inscribe init my-game     start a game project from the template
+    inscribe extract          read the prose in lore/ into a game sheet for you to check. A dollar or two, and asks first
     inscribe check            validate the game sheet, show what would be built, forecast the run. Free
     inscribe plan             build the scenes, the held-out checks and the world files. Free
     inscribe data             the teacher writes each scene's line on the backend, then the lines are checked here. Spends money, and asks first
     inscribe mix              build the training mix on the backend: the game's rows and the replay. Cents
     inscribe train            train the LoRA on the backend. Spends money, and asks first
     inscribe export           make the GGUF file and answer the held-out questions with it. Spends money, and asks first
+    inscribe eval             score the trained model and write the report card to out/report.md. Under a dollar, and asks first
     inscribe pull             bring the GGUF file and the results to out/
+    inscribe chat maren       talk to a character with the exported file, on this machine
     inscribe status           the steps this project has launched
     inscribe logs             a step's output
     inscribe stop             stop a running step
-
-The scoring step is not built yet.
 """
 from __future__ import annotations
 
@@ -93,6 +94,13 @@ def _load_inputs(proj: Project):
     except (ValueError, TypeError, yaml.YAMLError) as exc:
         raise _fail(f"{proj.npcs_path}: {exc}") from None
     return sheet, npcs
+
+
+def _plan_error(exc: ValueError) -> str:
+    if str(exc).startswith("dynamic NPC"):
+        return (f"npcs.yaml does not fit the sheet:\n  {str(exc).removeprefix('dynamic NPC ')}\n"
+                "Run-time characters are optional: fix the entry, or delete npcs.yaml.")
+    return f"The sheet validates, but a scene could not be built from it:\n  {exc}"
 
 
 def _notes(sheet, npcs, counts: dict) -> list[str]:
@@ -192,6 +200,75 @@ def init(name: Annotated[str, typer.Argument(help="The folder to create. Its nam
 
 
 @app.command()
+def extract(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B006
+            max_usd: Annotated[float, typer.Option("--max-usd", help="Stop before a call that would take the total past this.")] = 3.0,
+            effort: Annotated[str, typer.Option(help="How hard the model thinks: low, medium or high.")] = "medium",
+            dry_run: Annotated[bool, typer.Option("--dry-run", help="Show the cost forecast and send nothing.")] = False,
+            force: Annotated[bool, typer.Option("--force", help="Replace sheet/game-sheet.yaml even if you have edited it.")] = False,
+            yes: Annotated[bool, typer.Option("--yes", "-y", help="Do not ask before spending.")] = False) -> None:
+    """Read the prose in lore/ into a game sheet for you to check: three calls to the strong model, each answer validated."""
+    from inscribe.sheets import extract as X
+
+    proj, config = _open(project, set_)
+    if effort not in ("low", "medium", "high"):
+        raise _fail("--effort is one of low, medium, high")
+    try:
+        docs = X.read_documents(proj.lore_dir)
+    except FileNotFoundError as exc:
+        raise _fail(f"{exc}. The lore reader needs all four: {', '.join(X.DOCS)}.") from None
+    f = X.forecast(docs, config.game)
+    typer.echo(f"Reading {sum(f['document_chars'].values()):,} characters of lore for {config.game} with {config.llm.strong_model}.")
+    typer.echo(f"  about ${f['usd_first_pass']:.2f} for one pass, up to ${f['usd_with_repairs']:.2f} if every call needs its repair pass (estimates). Cap: ${max_usd:.2f}.")
+    if dry_run:
+        return
+    key = os.environ.get(config.llm.key_env)
+    if not key:
+        raise _fail(f"{config.llm.key_env} is not set in this shell. The lore reader needs it. It stays on this machine.")
+    if not yes and not typer.confirm("Start it?"):
+        raise typer.Exit(1)
+    ex = X.Extractor(proj.lore_dir, config.game, X.paid_answer(key), max_usd=max_usd, effort=effort, model=config.llm.strong_model)
+    try:
+        sheet, info = ex.run()
+    except (X.ExtractionError, X.BudgetError) as exc:
+        paid = ", ".join(f"{c['stage']}{' repair' if c['repair'] else ''} ${c['usd']:.3f}" for c in ex.calls) or "none"
+        raise _fail(f"The lore reader failed: {exc}\nCalls already paid: {paid} (${ex.spent:.3f}). Nothing was written.") from None
+
+    target = proj.sheet_path
+    if target.exists() and not force and target.read_text() != _template_sheet(config.game):
+        target = target.with_name("game-sheet.extracted.yaml")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(X.sheet_yaml(sheet, info))
+    report = proj.sheet_path.with_name("extract-report.md")
+    report.write_text(X.report_md(info))
+    raw = proj.build_dir / "extract" / "raw.json"
+    raw.parent.mkdir(parents=True, exist_ok=True)
+    raw.write_text(X.raw_json(info, ex.raw))
+    c = info["counts"]
+    typer.echo(f"{c['characters']} characters, {c['things']} places and things, {c['lore']} lore items ({c['lore_by_importance']['high']} marked high, {c['exact']} exact), "
+               f"{c['secrets']} secrets, {c['offers']} offers, {c['speech_examples']} speech examples, {c['story_stages']} story stages.")
+    typer.echo(f"  {info['repairs']} repair pass(es), ${info['cost_usd']:.2f}.")
+    typer.echo(f"Wrote {target.relative_to(proj.root)} and {report.relative_to(proj.root)}.")
+    if target != proj.sheet_path:
+        typer.echo(f"  {proj.sheet_path.relative_to(proj.root)} has your edits, so it was left alone. Compare the two, or pass --force to replace it.")
+    flags = info["to_check"]
+    typer.echo(f"Read the sheet before you train. The report lists {len(flags)} item(s) to look at first and what the sheet could not hold." if flags
+               else "Read the sheet before you train. The report lists what the sheet could not hold.")
+    if proj.npcs_path.is_file() and proj.npcs_path.read_text() == _template_text("npcs.yaml", config.game):
+        typer.echo("npcs.yaml still holds the template's example character, who lives in the template's world. Write your own run-time "
+                   "characters there, or delete the file.")
+    typer.echo("Next: inscribe check")
+
+
+def _template_text(name: str, game_id: str) -> str:
+    """A file as `inscribe init` writes it, so an untouched one can be told from one a person has edited."""
+    return resources.files("inscribe.templates").joinpath("game", *name.split("/")).read_text().replace("{{game_id}}", game_id)
+
+
+def _template_sheet(game_id: str) -> str:
+    return _template_text("sheet/game-sheet.yaml", game_id)
+
+
+@app.command()
 def check(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B006
           lore: Annotated[bool, typer.Option("--lore", help="List the lore items that get no scene of their own, with the reason.")] = False) -> None:
     """Validate the game sheet, show what would be built, and forecast the run. Free: nothing is written or spent."""
@@ -204,7 +281,7 @@ def check(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B
     try:
         built = plan_counts(sheet, npcs, fmt, config.seed)
     except ValueError as exc:
-        raise _fail(f"The sheet validates, but a scene could not be built from it:\n  {exc}") from None
+        raise _fail(_plan_error(exc)) from None
     counts = built["counts"]
     if lore:
         rows = lore_coverage(sheet, config.seed)
@@ -237,7 +314,7 @@ def plan(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = []) -> None:  #
     try:
         info = build_plan(proj.sheet_path, proj.plan_dir, npcs, fmt, config.seed)
     except ValueError as exc:
-        raise _fail(f"The sheet validates, but a scene could not be built from it:\n  {exc}") from None
+        raise _fail(_plan_error(exc)) from None
     c = info["counts"]
     typer.echo(f"{info['game_id']}: {c['teacher_cases']} scenes for the teacher, {c['style_cases']} lines from the sheet, "
                f"{sum(v for k, v in c['recall'].items() if k in ('lore', 'spoiler', 'dynamic', 'offers'))} held-out questions, {len(c['worlds'])} world files.")
@@ -317,7 +394,7 @@ def data(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B0
 
     rows = [json.loads(line) for line in candidates_path.read_text().splitlines() if line.strip()]
     worlds = {p.stem: World.model_validate(_yaml.safe_load(p.read_text())) for p in sorted((proj.plan_dir / "worlds").glob("*.yaml"))}
-    judge = F.FastJudge(api_key=key)
+    judge = F.FastJudge(api_key=key, model=config.llm.fast_model)
     typer.echo(f"Checking {len(rows):,} lines: code checks, then the judge ({judge.name}).")
     try:
         out = V.validate(rows, V.world_resolver(worlds), judge, source_fingerprint(), F.ACCEPT_BELOW, V.CODE_ONLY)
@@ -374,7 +451,7 @@ def train(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B
           base: Annotated[str | None, typer.Option(help="Which base model to train. Default: the first in lora.yaml.")] = None,
           max_steps: Annotated[int | None, typer.Option("--max-steps", help="Stop after this many steps and save nothing: a cheap check of the base, the data and the first losses.")] = None,
           keep: Annotated[bool, typer.Option("--keep", help="With --max-steps: save, merge and answer again all the same. A rehearsal of the whole path.")] = False,
-          prompts: Annotated[pathlib.Path | None, typer.Option(help="Questions to answer before and after training ({id, prompt, max_new} per line). Default: the plan's held-out questions.")] = None,
+          prompts: Annotated[pathlib.Path | None, typer.Option(help="Questions to answer before and after training ({id, prompt, max_new} per line). Default: the retention questions and the plan's held-out questions, which is what `inscribe eval` scores.")] = None,
           yes: Annotated[bool, typer.Option("--yes", "-y", help="Do not ask before spending.")] = False,
           detach: Annotated[bool, typer.Option("--detach", help="Start the step and return. See it later with `inscribe status` and `inscribe logs`.")] = False) -> None:
     """Train the LoRA on the backend: fetch the base model, answer the held-out questions, train, merge, answer again."""
@@ -401,8 +478,8 @@ def train(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B
         rows = [json.loads(line) for line in prompts.read_text().splitlines() if line.strip()]
         prompts_at = f"prompts/{prompts.name}"
     elif (proj.plan_dir / "recall.json").is_file():
-        rows = prompt_rows(json.loads((proj.plan_dir / "recall.json").read_text()), recipe.chat_format)
-        prompts_at = "prompts/recall.jsonl"
+        rows = runs.held_out_rows(json.loads((proj.plan_dir / "recall.json").read_text()), recipe.chat_format)
+        prompts_at = "prompts/held-out.jsonl"
     else:
         raise _fail("No held-out questions: run `inscribe plan` first, or pass --prompts.")
 
@@ -491,6 +568,140 @@ def export(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: 
     _report(handle, result)
     if not result or not result.get("ok"):
         raise typer.Exit(1)
+
+
+def _rows(path: pathlib.Path) -> list[dict] | None:
+    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()] if path.is_file() else None
+
+
+@app.command(name="eval")
+def eval_(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B006
+          base: Annotated[str | None, typer.Option(help="Which base model's run to score. Default: every base in lora.yaml.")] = None,
+          no_judge: Annotated[bool, typer.Option("--no-judge", help="Skip the strong model's spoiler and voice reads. Free, and the card says they were not judged.")] = False,
+          offline: Annotated[bool, typer.Option("--offline", help="Score the answers already in out/, without asking the backend for newer ones.")] = False,
+          max_usd: Annotated[float, typer.Option("--max-usd", help="A cap for the judge, per base model.")] = 2.0,
+          yes: Annotated[bool, typer.Option("--yes", "-y", help="Do not ask before spending.")] = False) -> None:
+    """Score the trained model and write the report card: lore recall, prices, run-time characters and what it kept, by
+    key words; later story told early and the character's voice, by the strong model."""
+    from inscribe.evaluate import scorecard, spoilers, style
+
+    proj, config = _open(project, set_)
+    sheet, _ = _load_inputs(proj)
+    if not (proj.plan_dir / "recall.json").is_file():
+        raise _fail("No build/plan/recall.json: run `inscribe plan` first. It holds the held-out questions and their keys.")
+    bundle = json.loads((proj.plan_dir / "recall.json").read_text())
+    names = [base] if base else list(config.base)
+    for name in names:
+        if name not in config.base:
+            raise _fail(f"{name} is not in lora.yaml's base ({', '.join(config.base)}).")
+    key = None if no_judge else os.environ.get(config.llm.key_env)
+    if not no_judge and not key:
+        raise _fail(f"{config.llm.key_env} is not set in this shell. The spoiler and voice reads need it. Or pass --no-judge.")
+    store = None if offline else _backend(config, proj).store()
+
+    reports = []
+    for name in names:
+        recipe = load_recipe(name)
+        fmt = format_by_name(recipe.chat_format)
+        if bundle.get("format") != fmt.name:
+            raise _fail(f"build/plan/ was made for chat format {bundle.get('format')}, not {fmt.name}. Run `inscribe plan` again.")
+        folder = proj.out_dir / name
+        if store is not None:
+            for remote, local in runs.small_files(store, name):
+                store.get(remote, proj.out_dir / local)
+        before, after = _rows(folder / "train-answers-before.jsonl"), _rows(folder / "train-answers-after.jsonl")
+        shipped = {p.stem.removeprefix("export-answers-"): _rows(p) for p in sorted(folder.glob("export-answers-*.jsonl"))}
+        if not after and not shipped:
+            typer.echo(f"{recipe.title}: no answers to score. Run `inscribe train` and `inscribe export` first.")
+            continue
+        judged: dict = {}
+        if key:
+            where = next(iter(shipped), None)
+            replies = spoilers.spoken(shipped[where] if where else after)
+            pairs = style.style_pairs(bundle, sheet, before or [], after or [], model=config.llm.strong_model)
+            asks = spoilers.spoiler_requests(bundle, sheet, replies, config.llm.strong_model)
+            from inscribe.judges import strong
+
+            cost = strong.forecast_usd(asks, spoilers.OUTPUT_FORECAST_TOKENS) + strong.forecast_usd([line for line, _ in pairs], style.OUTPUT_FORECAST_TOKENS)
+            typer.echo(f"{recipe.title}: the judge ({config.llm.strong_model}) reads {len(asks)} replies for spoilers and {len(pairs)} pairs for voice, about ${cost:.2f} (an estimate).")
+            if cost > max_usd:
+                raise _fail(f"That is over --max-usd {max_usd:g}.")
+            if not yes and not typer.confirm("Start it?"):
+                raise typer.Exit(1)
+            if asks:
+                judged["spoilers"] = {"read_at": where or "after", **spoilers.judge(bundle, sheet, replies, key, max_usd, config.llm.strong_model)}
+            if pairs:
+                judged["style"] = style.judge(bundle, sheet, before, after, key, max_usd, model=config.llm.strong_model)
+        rep = scorecard.build(config.game, name, recipe.title, bundle, sheet, fmt, before, after, shipped, judged)
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "report.json").write_text(json.dumps(rep, indent=1, ensure_ascii=False) + "\n")
+        reports.append(rep)
+        typer.echo(f"{recipe.title}, read at {rep['read_at']}:")
+        for c in rep["scorecard"]:
+            typer.echo(f"  {'not judged' if c['met'] is None else 'met' if c['met'] else 'NOT MET':<11}{c['item']}: {c['value']}")
+        spent = sum(j.get("cost_usd", 0) for j in judged.values())
+        if judged:
+            typer.echo(f"  the judge cost ${spent:.2f}.")
+    if not reports:
+        raise typer.Exit(1)
+    # one page for every base model that has been scored, this time or before
+    done = {r["base"]: r for r in reports}
+    for name in config.base:
+        earlier = proj.out_dir / name / "report.json"
+        if name not in done and earlier.is_file():
+            done[name] = json.loads(earlier.read_text())
+    page = proj.out_dir / "report.md"
+    page.write_text(scorecard.report_md([done[n] for n in config.base if n in done]))
+    typer.echo(f"Wrote {page.relative_to(proj.root)}. It says what was not checked too.")
+
+
+@app.command()
+def chat(character: Annotated[str | None, typer.Argument(help="Who to talk to: an id, a name or the start of one. Leave it out to list them.")] = None,
+         project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B006
+         base: Annotated[str | None, typer.Option(help="Which base model's file. Default: the first in lora.yaml.")] = None,
+         quant: Annotated[str | None, typer.Option(help="Which exported file, for example Q5_K_M, when out/ holds several.")] = None,
+         stage: Annotated[int | None, typer.Option(help="The story stage the character stands at, counted from 1. Default: before the story starts.")] = None,
+         say: Annotated[list[str], typer.Option("--say", help="Say this line and print the reply, without the prompt. Repeatable: the lines form one conversation.")] = [],  # noqa: B006
+         temperature: Annotated[float, typer.Option(help="0 is greedy, as the checks are.")] = 0.0,
+         server: Annotated[str, typer.Option(help="Path to llama-server.")] = "llama-server",
+         gpu_layers: Annotated[str, typer.Option("--gpu-layers", help="llama-server's -ngl: all, or 0 for CPU only.")] = "all") -> None:
+    """Talk to one of the game's characters with the exported file, on this machine. Needs llama-server from llama.cpp."""
+    from inscribe import chat as C
+
+    proj, config = _open(project, set_)
+    sheet, npcs = _load_inputs(proj)
+    if character is None:
+        typer.echo("Characters:")
+        for c in sheet.characters:
+            typer.echo(f"  {c.name}  ({c.id})" + (f"  {c.role}" if c.role else ""))
+        for n in npcs:
+            typer.echo(f"  {n.name}  ({n.id})  made up at run time")
+        return
+    name = base or config.base[0]
+    recipe = load_recipe(name)
+    if stage is not None and not 1 <= stage <= len(sheet.story):
+        raise _fail(f"--stage is 1 to {len(sheet.story)} for this game.")
+    try:
+        actor = C.who(sheet, npcs, character)
+        gguf = C.find_gguf(proj.out_dir, config.game, recipe.name, quant)
+        talk = C.Conversation(sheet, npcs, actor, format_by_name(recipe.chat_format), None if stage is None else stage - 1)
+        typer.echo(f"Loading {gguf.name} ...", err=True)
+        with C.Server(gguf, server, gpu_layers) as srv:
+            if say:
+                for line in say:
+                    typer.echo(f"Player: {line}\n{talk.name}: {talk.say(srv, line, temperature)}")
+                return
+            typer.echo(f"Talking to {talk.name}. An empty line or Ctrl-D ends it.", err=True)
+            while True:
+                try:
+                    line = input("You: ").strip()
+                except EOFError:
+                    break
+                if not line:
+                    break
+                typer.echo(f"{talk.name}: {talk.say(srv, line, temperature)}")
+    except C.ChatError as exc:
+        raise _fail(str(exc)) from None
 
 
 def _report(handle, result: dict | None) -> None:
