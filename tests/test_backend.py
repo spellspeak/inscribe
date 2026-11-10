@@ -87,3 +87,18 @@ def test_pull_brings_the_gguf_and_results_and_leaves_the_merged_model(tmp_path):
     with_adapter = dict(pull_list(store, "glyph-2b", adapter=True))
     assert with_adapter["train/glyph-2b/adapter/adapter_model.safetensors"] == "glyph-2b/adapter/adapter_model.safetensors"
     assert not any("merged" in k for k in with_adapter) and pull_list(store, "none") == []
+
+
+def test_an_interrupted_step_says_so(tmp_path, monkeypatch):
+    import inscribe.stages.run as runner
+    import inscribe.stages.smoke as smoke
+
+    def interrupted(work, run_dir, job):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(smoke, "run", interrupted)
+    (tmp_path / "smoke" / "cut").mkdir(parents=True)
+    (tmp_path / "smoke" / "cut" / "job.json").write_text("{}")
+    assert runner.main(["smoke", "--work", str(tmp_path), "--run", "smoke/cut"]) == 1
+    result = json.loads((tmp_path / "smoke" / "cut" / "result.json").read_text())
+    assert not result["ok"] and result["interrupted"] and result["error"].startswith("interrupted") and "again" in result["error"]

@@ -8,7 +8,7 @@ You write the lore. Inscribe turns it into training scenes, has a teacher model 
 
 ## Status
 
-This is an early build. You can check a game sheet, plan the data, train on Modal and export a GGUF file. The step that writes the training lines for your own game does not exist yet, so training only works with rows you already have.
+This is an early build. From a game sheet it plans the data, has a teacher write the training lines and checks them, mixes them, trains on Modal and exports a GGUF file. Two steps are missing: the one that reads prose lore into a sheet, and the one that scores the result. The replay pack the mix draws on is not published yet.
 
 | Step | Command | What it does | Status |
 |---|---|---|---|
@@ -16,9 +16,9 @@ This is an early build. You can check a game sheet, plan the data, train on Moda
 | Check | `inscribe check` | Validates the game sheet, shows what would be built, forecasts the run | works |
 | Plan | `inscribe plan` | Builds the training scenes, the held-out questions and the world files | works |
 | Extract | | Reads prose lore into a game sheet for you to check | not built |
-| Data | | A teacher model answers the scenes, and the answers are checked | not built |
+| Data | `inscribe data` | A teacher model answers the scenes on your Modal account, and the answers are checked | works |
 | Mix | `inscribe mix` | Mixes the game's rows with general rows, so the model keeps the skills it had | works; the replay pack it draws on is not published yet |
-| Train | `inscribe train` | Trains the LoRA on your Modal account and merges it | works, given training rows |
+| Train | `inscribe train` | Trains the LoRA on your Modal account and merges it | works |
 | Follow | `inscribe status`, `logs`, `stop`, `pull` | The steps a project has launched, and their files | works |
 | Export | `inscribe export` | Makes the GGUF file and answers the held-out questions with it | works |
 | Score | | Lore recalled, spoilers told early, skills kept | not built |
@@ -84,26 +84,48 @@ budget:
 
 ## On the example game
 
-One run, on the 2B model, through `inscribe train` and `inscribe export`. The 5,355 training rows came from the pipeline this tool is lifted from, because the step that makes them is not in the tool yet.
+One run, on the 2B model, through `inscribe data`, `mix`, `train` and `export`.
+
+| Step | What came out | Time |
+|---|---|---|
+| Data | The teacher wrote 3,896 lines for 974 scenes. The checks kept 727 | 10 minutes on one H100, then the judge, about $0.54 |
+| Mix | 5,400 rows: 740 of the game's, 4,660 replayed | seconds |
+| Train | The LoRA and the merged model | 80 minutes on one H100, 64 of them training |
+| Export | A 2.91 GB file | 12 minutes on one L4 |
 
 | Held-out questions | Base model, before training | After, from the 2.91 GB file |
 |---|---:|---:|
-| Important lore items recalled, of 33 | 0 | 31 |
-| All lore items recalled, of 98 | 0 | 75 |
-| Sayings given word for word, of 20 questions | 0 | 13 |
+| Important lore items recalled, of 33 | 0 | 32 |
+| All lore items recalled, of 98 | 1 | 76 |
+| Sayings given word for word, of 20 questions | 0 | 16 |
 | A later story stage given away, of 36 questions (by key words) | 0 | 0 |
-| Run-time characters answering from the lore, of 36 questions | 0 | 24, and no secret told |
-| Prices read from the character's own sheet, of 38 questions | 38 | 38 |
+| Run-time characters answering from the lore, of 36 questions | 0 | 26, and no secret told |
+| Prices read from the character's own sheet, of 38 questions | 38 | 37 |
 
-"Before" is the base model at full precision, in the training container. The training step took 70 minutes on one H100, 55 of them training. The export took 14 minutes on one L4.
+"Before" is the base model at full precision, in the training container.
 
-The tool does not yet check that the model kept its general skills. On a general test of ours that is not public yet, this LoRA passed 199 of 309 scenes, and the base model 205, a difference inside the noise of that test.
+The tool does not yet check that the model kept its general skills. On a general test of ours that is not public yet, this LoRA passed 203 of 309 scenes, and the base model 205, a difference inside the noise of that test.
+
+This is one run. A second LoRA, trained with the same settings on lines from the pipeline this tool is lifted from, recalled 31 of the 33 important items and passed 199 of the 309 scenes. Expect that much spread between two runs.
 
 ## Why most of the training mix is not your game
 
 A LoRA trained on a game's rows alone forgets how to do what the base model could. So about six rows in seven of the mix are replay: general rows the base model was trained on. `inscribe mix` takes four of them for each of the game's rows, and a fixed number more from the families a game LoRA loses first: things from the real world, long conversations, and who speaks next in a group.
 
 The general rows come from a replay pack, about 55,000 rows already rendered as text. The same seed always draws the same rows. The pack is not published yet, so today `inscribe mix` only works where the pack is.
+
+## What `data` does
+
+`inscribe data` has a teacher model write four lines for every scene, then keeps the best line of each scene, or none.
+
+- **The teacher** is an open-weights model, Qwen3.8-27B at 8 bits, on one H100 of your Modal account. It sees the scene as the game model will see it, the lore that scene leaves out of the prompt on purpose (so the game model learns to carry it in its weights), and a note on style and on what a good reply does here. It never sees what the character does not know, or the answer key. The first run downloads about 30 GB to the project's volume.
+- **Code checks** run on your machine. A line is dropped when it is empty or cut off, quotes the question back, has markup, is too long, misses a word the scene needs or says one it must not, or is a copy of a line seen twice already.
+- **A judge model** then reads the lines that are not plain lore, from your machine. A line it faults is dropped. This needs `OPENAI_API_KEY` in your shell, and the key stays on your machine. On the example game the judge read 925 lines and dropped 396 of them.
+- Of the lines left, a scene keeps the one the judge likes best. A line too close to one already kept is dropped.
+
+`build/data/rejected.jsonl` holds every dropped line with its reason. Read some of the kept lines before you train: the model will talk like them. On the example game, 2 of the 727 kept lines open by saying the player's question back, a teacher habit the checks only catch when the question is in quotes.
+
+`inscribe data --limit 20` writes lines for 20 scenes only, as a rehearsal. The teacher still takes about four minutes to load.
 
 ## Where the GPU steps run
 
@@ -117,6 +139,8 @@ uv run modal token new
 ```
 
 `inscribe train` says what it will cost and asks before it starts. `--max-steps 5` runs five steps and saves nothing: it shows that the base model loads, the data reads and the first losses look right, for well under a dollar.
+
+A step can be cut short from outside, for example when Modal takes its machine back. One of our exports ended that way after 15 minutes and ran cleanly the second time. `inscribe status` then shows the step as failed, with "interrupted" as the reason when the step had time to write one. Nothing of that step is kept: run the command again.
 
 The same weights give slightly different numbers on different machines. Two identical five-step checks gave first losses up to 0.003 apart, and worded 88 of 620 test replies differently. Compare runs with that in mind.
 
@@ -146,6 +170,7 @@ Everything is built by code from the sheet. No model is called, and the same she
 | `src/inscribe/plan/` | The plan step: scenes, world files, held-out questions and their scoring |
 | `src/inscribe/scenarios/`, `context/`, `schemas/`, `sheets/` | Scenario generators, the view a character gets of the world, the file formats |
 | `src/inscribe/runtime/` | The prompt format, the same code that ships with the models |
+| `src/inscribe/data/`, `judges/` | The teacher, the checks on its lines, the judge's questions, and the mix |
 | `src/inscribe/train/`, `export/`, `stages/` | The training and export steps, and the small program that runs any step inside its container |
 | `src/inscribe/backends/` | What a backend is, Modal as the first one, and a local one the tests use |
 | `src/inscribe/recipes/`, `images.py` | One file per base model with its pinned revision and measured settings, and the pinned images the steps run in |

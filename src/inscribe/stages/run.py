@@ -5,6 +5,9 @@
 It reads `job.json` from the run folder, calls the step, and writes `result.json` beside it: `ok`, the step's own
 result or the error, and how long it took. Everything the step prints also goes to `log.txt` in the run folder, so the
 log outlives the container. A step is done when `result.json` exists. Nothing here imports the command-line tool.
+
+A step that is interrupted (stopped by hand, or its machine taken back by the backend) says so in its result, when it
+gets the chance to write one. Its work is not kept: run the command again.
 """
 from __future__ import annotations
 
@@ -26,6 +29,7 @@ STAGES = {
     "fetch": "inscribe.data.teacher:fetch",
     "teacher": "inscribe.data.teacher:run",
 }
+INTERRUPTED = "interrupted: the step was stopped, or the backend took its machine back. Run the command again."
 
 
 class _Tee:
@@ -65,7 +69,9 @@ def main(argv: list[str] | None = None) -> int:
             out = {"ok": True, "stage": a.stage, "result": result}
         except BaseException as exc:  # noqa: BLE001  (the reason must reach result.json whatever it is)
             traceback.print_exc()
-            out = {"ok": False, "stage": a.stage, "error": f"{type(exc).__name__}: {exc}", "traceback": traceback.format_exc()[-6000:]}
+            interrupted = isinstance(exc, KeyboardInterrupt)
+            out = {"ok": False, "stage": a.stage, "error": INTERRUPTED if interrupted else f"{type(exc).__name__}: {exc}",
+                   "interrupted": interrupted, "traceback": traceback.format_exc()[-6000:]}
         out["seconds"] = round(time.time() - started, 1)
         print(f"[inscribe] {a.stage} {'finished' if out['ok'] else 'FAILED'} in {out['seconds']} s", flush=True)
         sys.stdout, sys.stderr = sys.__stdout__, sys.__stderr__

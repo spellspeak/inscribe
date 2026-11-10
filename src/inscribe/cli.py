@@ -287,7 +287,7 @@ def data(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B0
         price = backend.hourly_usd(spec)
         typer.echo(f"Teacher for {config.game}: {scenes:,} scenes, {config.teacher.candidates} lines each, one {spec.gpu}.")
         typer.echo(f"  about {hours * 60:.0f} minutes" + (f", about ${hours * price:.2f} at ${price:g} an hour (an estimate, not a quote)" if price is not None else ""))
-        typer.echo("  then the judge checks the lines from this machine: about half a cent a line it reads.")
+        typer.echo("  then the judge checks the lines that are not plain lore, from this machine: about $0.60 for a thousand lines it reads.")
         if not yes and not typer.confirm("Start it?"):
             raise typer.Exit(1)
         files = [(p, f"plan/worlds/{p.name}") for p in sorted((proj.plan_dir / "worlds").glob("*.yaml"))] + [(proj.plan_dir / "scenarios.jsonl", "plan/scenarios.jsonl")]

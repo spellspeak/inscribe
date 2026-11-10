@@ -131,8 +131,9 @@ def export_spec(recipe: Recipe, run_id: str) -> StageSpec:
 
 
 def export_hours(job: dict, questions: int) -> float:
-    """An estimate: convert and importance matrix, then quantize and answer per file. Not yet measured alone."""
-    return (900 + len(job["quant"]) * (300 + questions * 1.0)) / 3600
+    """An estimate from two measured runs of one file and 803 questions (12 and 14 minutes on one L4): convert and the
+    importance matrix, then quantize and answer per file."""
+    return (480 + len(job["quant"]) * (60 + questions * 0.4)) / 3600
 
 
 def follow(backend: Backend, handle: RunHandle, echo: Callable[[str], None], poll_s: float = 10.0) -> dict | None:

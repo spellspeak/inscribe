@@ -1,17 +1,17 @@
 """What a run will take, before any money is spent.
 
-Every number here is an estimate from one measured run of the example game: one teacher run and one training run
-per base model, on one H100. A different game, GPU or day will differ. Costs use the hourly prices in the config,
+Every number here is an estimate from measured runs of the example game: one teacher run and one training run per
+base model on one H100, and two exports on one L4. A different game, GPU or day will differ. Costs use the hourly prices in the config,
 which are estimates and not quotes. The cost of the outside model that checks the teacher's lines is not counted.
 """
 from __future__ import annotations
 
 from inscribe.config import Config, Recipe
 
-ACCEPTED_PER_SCENE = 0.74  # 718 lines kept from 974 scenes, four candidates a scene
-TEACHER_LOAD_SECONDS = 275  # loading the teacher model before it writes anything
-TEACHER_SECONDS_PER_CANDIDATE = 0.08  # 312 seconds for 3,896 candidates
-EXPORT_HOURS = 0.5  # convert, quantize and answer the held-out questions; an assumption, not yet measured alone
+ACCEPTED_PER_SCENE = 0.75  # 727 lines kept from 974 scenes, four candidates a scene
+TEACHER_LOAD_SECONDS = 245  # loading the teacher model before it writes anything
+TEACHER_SECONDS_PER_CANDIDATE = 0.08  # 310 seconds for 3,896 candidates
+EXPORT_HOURS = 0.25  # convert, quantize one file and answer about 800 held-out questions: 12 and 14 minutes measured
 
 
 def forecast(counts: dict, config: Config, recipes: list[Recipe]) -> dict:
