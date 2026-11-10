@@ -48,7 +48,12 @@ uv run inscribe check
 uv run inscribe check --lore
 ```
 
-The whole path, once your prose is in `lore/`:
+The whole path, once your prose is in `lore/`. The GPU steps run on your Modal account, so install the Modal extra and sign in first:
+
+```bash
+uv sync --extra modal
+uv run modal token new
+```
 
 ```bash
 uv run inscribe extract     # prose to a game sheet. Read the sheet before going on

@@ -77,7 +77,7 @@ class ModalBackend:
         try:
             import modal  # noqa: F401
         except ImportError:
-            return ["The `modal` package is not installed. Install it with: uv pip install modal"]
+            return ["The `modal` package is not installed. In a clone of this repo: uv sync --extra modal. Anywhere else: pip install modal"]
         try:
             self.volume()
         except Exception as exc:  # noqa: BLE001  (whatever it is, the user needs the reason)
