@@ -11,6 +11,17 @@ SMOKE = ImageSpec(pip=(PipLayer(_OWN),))
 # The mix: this package, and Hugging Face for a published replay pack.
 MIX = ImageSpec(pip=(PipLayer((*_OWN, "huggingface-hub==1.33.0")),), env=_ENV)
 
+# The teacher: vLLM on NVIDIA's CUDA devel image, because its FP8 path compiles kernels at run time. Models are cached
+# on the store, so a run does not download 30 GB again. FETCH fills that cache on a cheap machine first.
+_HF_CACHE = {"HF_HUB_DISABLE_TELEMETRY": "1", "HF_HOME": "/work/cache/hf"}
+FETCH = ImageSpec(pip=(PipLayer((*_OWN, "huggingface-hub==1.33.0")),), env=_HF_CACHE)
+TEACHER = ImageSpec(
+    base="nvidia/cuda:13.0.3-devel-ubuntu24.04",
+    clear_entrypoint=True,
+    pip=(PipLayer(("vllm==0.30.0", "pyyaml==6.0.3")),),
+    env={**_HF_CACHE, "VLLM_LOGGING_LEVEL": "WARNING", "VLLM_USE_DEEP_GEMM": "0", "VLLM_USE_FLASHINFER_SAMPLER": "0", "CUDA_HOME": "/usr/local/cuda"},
+)
+
 # Training: torch built for CUDA 12.6, then the Hugging Face stack.
 TRAIN = ImageSpec(
     pip=(PipLayer(("torch==2.14.1",), index_url="https://download.pytorch.org/whl/cu126"),

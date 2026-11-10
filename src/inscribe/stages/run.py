@@ -23,6 +23,8 @@ STAGES = {
     "train": "inscribe.train.lora:run",
     "export": "inscribe.export.gguf:run",
     "mix": "inscribe.data.mix:run",
+    "fetch": "inscribe.data.teacher:fetch",
+    "teacher": "inscribe.data.teacher:run",
 }
 
 

@@ -3,6 +3,7 @@
     inscribe init my-game     start a game project from the template
     inscribe check            validate the game sheet, show what would be built, forecast the run. Free
     inscribe plan             build the scenes, the held-out checks and the world files. Free
+    inscribe data             the teacher writes each scene's line on the backend, then the lines are checked here. Spends money, and asks first
     inscribe mix              build the training mix on the backend: the game's rows and the replay. Cents
     inscribe train            train the LoRA on the backend. Spends money, and asks first
     inscribe export           make the GGUF file and answer the held-out questions with it. Spends money, and asks first
@@ -11,11 +12,12 @@
     inscribe logs             a step's output
     inscribe stop             stop a running step
 
-The teacher and scoring steps are not built yet.
+The scoring step is not built yet.
 """
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 import re
 from importlib import resources
@@ -251,6 +253,88 @@ def _backend(config: Config, proj: Project):
 
 
 @app.command()
+def data(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B006
+         limit: Annotated[int | None, typer.Option(help="Write lines for only this many scenes: a cheap rehearsal.")] = None,
+         skip_teacher: Annotated[bool, typer.Option("--skip-teacher", help="Check the lines already written, without running the teacher again.")] = False,
+         yes: Annotated[bool, typer.Option("--yes", "-y", help="Do not ask before spending.")] = False) -> None:
+    """Make the game's own training lines: a teacher model writes several lines for every scene on the backend, then
+    code checks and a judge keep the best line of each scene, or none."""
+    import yaml as _yaml
+
+    from inscribe.data import teacher as T
+    from inscribe.data import validate as V
+    from inscribe.judges import fast as F
+    from inscribe.plan.build import source_fingerprint
+    from inscribe.schemas.world import World
+
+    proj, config = _open(project, set_)
+    if not (proj.plan_dir / "scenarios.jsonl").is_file():
+        raise _fail("No build/plan/: run `inscribe plan` first.")
+    key = os.environ.get(config.llm.key_env)
+    if not key:
+        raise _fail(f"{config.llm.key_env} is not set in this shell. The judge that checks the lines needs it. It stays on this machine.")
+    scenes = sum(1 for line in (proj.plan_dir / "scenarios.jsonl").read_text().splitlines() if line.strip())
+    scenes = min(scenes, limit) if limit else scenes
+    out_dir = proj.build_dir / "data"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    candidates_path = out_dir / "candidates.jsonl"
+
+    if not skip_teacher:
+        backend = _backend(config, proj)
+        store = backend.store()
+        spec = runs.teacher_spec()
+        hours = runs.teacher_hours(scenes, config.teacher.candidates)
+        price = backend.hourly_usd(spec)
+        typer.echo(f"Teacher for {config.game}: {scenes:,} scenes, {config.teacher.candidates} lines each, one {spec.gpu}.")
+        typer.echo(f"  about {hours * 60:.0f} minutes" + (f", about ${hours * price:.2f} at ${price:g} an hour (an estimate, not a quote)" if price is not None else ""))
+        typer.echo("  then the judge checks the lines from this machine: about half a cent a line it reads.")
+        if not yes and not typer.confirm("Start it?"):
+            raise typer.Exit(1)
+        files = [(p, f"plan/worlds/{p.name}") for p in sorted((proj.plan_dir / "worlds").glob("*.yaml"))] + [(proj.plan_dir / "scenarios.jsonl", "plan/scenarios.jsonl")]
+        store.put_many(files) if hasattr(store, "put_many") else [store.put(p, r) for p, r in files]
+        fetch = runs.fetch_spec()
+        fetched = read_result(store, fetch)
+        if not (fetched and fetched.get("ok") and fetched["result"].get("revision") == T.TEACHER_REVISION):
+            typer.echo("Fetching the teacher model into the store's cache, on a CPU. This happens once.")
+            store.write_text(f"{fetch.run_dir}/job.json", json.dumps({"repo": T.TEACHER_REPO, "revision": T.TEACHER_REVISION}) + "\n")
+            handle = backend.launch(fetch)
+            runs.save_handle(proj, handle)
+            result = runs.follow(backend, handle, typer.echo)
+            if not result or not result.get("ok"):
+                _report(handle, result)
+                raise typer.Exit(1)
+        store.write_text(f"{spec.run_dir}/job.json", json.dumps(runs.teacher_job(config, limit), indent=1) + "\n")
+        handle = backend.launch(spec)
+        runs.save_handle(proj, handle)
+        typer.echo(f"Started teacher-game ({handle.id}).")
+        result = runs.follow(backend, handle, typer.echo)
+        _report(handle, result)
+        if not result or not result.get("ok"):
+            raise typer.Exit(1)
+        store.get(runs.CANDIDATES_AT, candidates_path)
+    elif not candidates_path.is_file():
+        raise _fail("No build/data/candidates.jsonl to check. Run `inscribe data` without --skip-teacher.")
+
+    rows = [json.loads(line) for line in candidates_path.read_text().splitlines() if line.strip()]
+    worlds = {p.stem: World.model_validate(_yaml.safe_load(p.read_text())) for p in sorted((proj.plan_dir / "worlds").glob("*.yaml"))}
+    judge = F.FastJudge(api_key=key)
+    typer.echo(f"Checking {len(rows):,} lines: code checks, then the judge ({judge.name}).")
+    try:
+        out = V.validate(rows, V.world_resolver(worlds), judge, source_fingerprint(), F.ACCEPT_BELOW, V.CODE_ONLY)
+    except F.JudgeError as exc:
+        raise _fail(f"The judge refused the request: {exc}") from None
+    (out_dir / "accepted.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in out["accepted"]))
+    (out_dir / "rejected.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in out["rejected"]))
+    report = {**V.summary(rows, out), "judge": {"model": judge.name, "definitions": F.DEFINITIONS_VERSION, "accept_below": F.ACCEPT_BELOW,
+                                                  "input_tokens": judge.input_tokens, "usd": round(F.cost_usd(judge.input_tokens), 2)}}
+    (out_dir / "report.json").write_text(json.dumps(report, indent=1) + "\n")
+    typer.echo(f"Kept {report['accepted']:,} lines for {report['scenes']:,} scenes ({report['candidates']:,} written).")
+    typer.echo("  dropped: " + ", ".join(f"{k.replace('_', ' ')} {v}" for k, v in report["reasons"].items()))
+    typer.echo(f"  the judge read {judge.input_tokens:,} tokens, about ${report['judge']['usd']:.2f}.")
+    typer.echo("Wrote build/data/accepted.jsonl, rejected.jsonl and report.json. Next: inscribe mix")
+
+
+@app.command()
 def mix(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B006
         yes: Annotated[bool, typer.Option("--yes", "-y", help="Do not ask before spending.")] = False) -> None:
     """Build the training mix on the backend: the game's own rows, and general rows replayed so the model keeps its skills."""
@@ -419,6 +503,9 @@ def _report(handle, result: dict | None) -> None:
         r = result["result"]
         typer.echo(f"{name}: {r['steps']} of {r['total_steps']} steps on {r['examples']} examples in {r['train_s']} s, peak {r['peak_gb']} GB on {r['gpu']}.")
         typer.echo(f"  first losses {r['loss_first']}" + ("" if r["stopped_early"] else f", last {r['loss_last']}"))
+    elif handle.stage == "teacher":
+        r = result["result"]
+        typer.echo(f"{name}: {r['candidates']:,} lines for {r['scenes']:,} scenes. Loading took {r['load_s']:.0f} s, writing {r['generate_s']:.0f} s, on {r['gpu']}.")
     elif handle.stage == "mix":
         r = result["result"]
         typer.echo(f"{name}: {r['examples']:,} rows: {r['parts']['game']:,} of the game's, {r['parts']['replay']:,} replayed, {sum(r['parts']['targeted'].values()):,} targeted.")

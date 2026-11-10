@@ -83,6 +83,28 @@ def train_hours(recipe: Recipe, job: dict, examples: int, questions: int) -> flo
     return (BASE_SECONDS + answers + sequences * recipe.measured.train_seconds_per_example_epoch) / 3600
 
 
+CANDIDATES_AT = "data/candidates.jsonl"  # the teacher's lines, on the store
+
+
+def fetch_spec() -> StageSpec:
+    return StageSpec(stage="fetch", run_id="teacher", image=images.FETCH, cpu=4.0, memory_mb=8192, timeout_s=2 * 60 * 60)
+
+
+def teacher_job(config: Config, limit: int | None) -> dict:
+    return {"scenarios": "plan/scenarios.jsonl", "worlds": "plan/worlds", "candidates": config.teacher.candidates, "limit": limit, "out": CANDIDATES_AT}
+
+
+def teacher_spec() -> StageSpec:
+    return StageSpec(stage="teacher", run_id="game", image=images.TEACHER, gpu="H100", min_vram_gb=70, cpu=8.0, memory_mb=65536, timeout_s=3 * 60 * 60)
+
+
+def teacher_hours(scenes: int, candidates: int) -> float:
+    """An estimate of the teacher step's GPU time, from one measured run: loading, then the lines."""
+    from inscribe.forecast import TEACHER_LOAD_SECONDS, TEACHER_SECONDS_PER_CANDIDATE
+
+    return (TEACHER_LOAD_SECONDS + scenes * candidates * TEACHER_SECONDS_PER_CANDIDATE) / 3600
+
+
 ACCEPTED_AT = "data/accepted.jsonl"  # the game's accepted teacher lines, on the store
 
 
