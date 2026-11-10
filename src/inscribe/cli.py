@@ -5,6 +5,7 @@
     inscribe plan             build the scenes, the held-out checks and the world files. Free
     inscribe train            train the LoRA on the backend. Spends money, and asks first
     inscribe export           make the GGUF file and answer the held-out questions with it. Spends money, and asks first
+    inscribe pull             bring the GGUF file and the results to out/
     inscribe status           the steps this project has launched
     inscribe logs             a step's output
     inscribe stop             stop a running step
@@ -293,7 +294,7 @@ def train(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B
     cost = None if price is None else hours * price
     what = (f"{max_steps} steps as a " + ("rehearsal, everything saved" if job["keep"] else "check, nothing saved")) if max_steps else f"{job['lora']['epochs']} epochs"
     typer.echo(f"Train {recipe.title} for {config.game}: {what}.")
-    typer.echo(f"  {examples if examples is not None else 'rows already on the store'} training rows, {len(rows)} questions, one {spec.gpu}")
+    typer.echo(f"  {f'{examples:,} training rows' if examples is not None else 'the training rows already on the store'}, {len(rows)} questions, one {spec.gpu}")
     typer.echo(f"  about {hours * 60:.0f} minutes" + (f", about ${cost:.2f} at ${price:g} an hour (an estimate, not a quote)" if cost is not None else ", cost not known"))
     if cost is not None and cost > config.budget.max_usd:
         raise _fail(f"That is over the budget in lora.yaml (${config.budget.max_usd:g}). Raise budget.max_usd to go ahead.")
@@ -387,6 +388,23 @@ def _report(handle, result: dict | None) -> None:
             typer.echo(f"{name}: {f['file'].rsplit('/', 1)[-1]}, {f['bytes'] / 1e9:.2f} GB" + (f", answered on the GPU: {f['on_gpu']}" if "on_gpu" in f else ""))
     else:
         typer.echo(f"{name}: finished in {result.get('seconds')} s.")
+
+
+@app.command()
+def pull(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B006
+         base: Annotated[str | None, typer.Option(help="Which base model's files. Default: every base in lora.yaml.")] = None,
+         adapter: Annotated[bool, typer.Option("--adapter", help="Bring the LoRA adapter too.")] = False) -> None:
+    """Bring the GGUF file, each step's result and its answers from the backend's store to out/."""
+    proj, config = _open(project, set_)
+    store = _backend(config, proj).store()
+    got = 0
+    for name in ([base] if base else config.base):
+        for remote, local in runs.pull_list(store, name, adapter):
+            target = proj.out_dir / local
+            store.get(remote, target)
+            typer.echo(f"  {target.relative_to(proj.root)}  ({target.stat().st_size / 1e6:,.1f} MB)")
+            got += 1
+    typer.echo(f"Brought {got} file(s) to out/." if got else "Nothing to bring yet: no finished export or training run on the store.")
 
 
 @app.command()

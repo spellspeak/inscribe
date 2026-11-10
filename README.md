@@ -8,7 +8,7 @@ You write the lore. Inscribe turns it into training scenes, has a teacher model 
 
 ## Status
 
-This is an early build. The steps that spend no money work today. Training runs on Modal as a short check. A whole training run, and the steps around it, are not finished.
+This is an early build. You can check a game sheet, plan the data, train on Modal and export a GGUF file. The step that writes the training lines for your own game does not exist yet, so training only works with rows you already have.
 
 | Step | Command | What it does | Status |
 |---|---|---|---|
@@ -17,9 +17,9 @@ This is an early build. The steps that spend no money work today. Training runs 
 | Plan | `inscribe plan` | Builds the training scenes, the held-out questions and the world files | works |
 | Extract | | Reads prose lore into a game sheet for you to check | not built |
 | Data | | A teacher model answers the scenes. The answers are checked and mixed with general examples | not built |
-| Train | `inscribe train` | Trains the LoRA on your Modal account and merges it | a five-step check runs; a whole run is not verified yet |
-| Follow | `inscribe status`, `logs`, `stop` | The steps a project has launched | works |
-| Export | | Makes the GGUF file | not built |
+| Train | `inscribe train` | Trains the LoRA on your Modal account and merges it | works, given training rows |
+| Follow | `inscribe status`, `logs`, `stop`, `pull` | The steps a project has launched, and their files | works |
+| Export | `inscribe export` | Makes the GGUF file and answers the held-out questions with it | works |
 | Score | | Lore recalled, spoilers told early, skills kept | not built |
 
 Until Extract exists you write the game sheet by hand. [docs/game-sheet.md](docs/game-sheet.md) describes every field.
@@ -122,7 +122,7 @@ Everything is built by code from the sheet. No model is called, and the same she
 | `src/inscribe/plan/` | The plan step: scenes, world files, held-out questions and their scoring |
 | `src/inscribe/scenarios/`, `context/`, `schemas/`, `sheets/` | Scenario generators, the view a character gets of the world, the file formats |
 | `src/inscribe/runtime/` | The prompt format, the same code that ships with the models |
-| `src/inscribe/train/`, `stages/` | The training step, and the small program that runs any step inside its container |
+| `src/inscribe/train/`, `export/`, `stages/` | The training and export steps, and the small program that runs any step inside its container |
 | `src/inscribe/backends/` | What a backend is, Modal as the first one, and a local one the tests use |
 | `src/inscribe/recipes/`, `images.py` | One file per base model with its pinned revision and measured settings, and the pinned images the steps run in |
 | `examples/` | Two complete games: lore, sheet and run-time characters |

@@ -109,6 +109,26 @@ def follow(backend: Backend, handle: RunHandle, echo: Callable[[str], None], pol
     return result
 
 
+def pull_list(store, base: str, adapter: bool = False) -> list[tuple[str, str]]:
+    """What `pull` brings from the store for one base model, as (path on the store, path under out/). The GGUF files
+    and each step's result and answers always; the adapter when asked. The merged model stays on the store: it is
+    the size of the base model, and the GGUF and the adapter are what a game needs."""
+    wanted = []
+    for remote in store.list(f"export/{base}"):
+        tail = remote.removeprefix(f"export/{base}/")
+        if tail.startswith("gguf/"):
+            wanted.append((remote, tail.removeprefix("gguf/")))
+        elif tail == "result.json" or tail.startswith("answers-"):
+            wanted.append((remote, f"{base}/export-{tail}"))
+    for remote in store.list(f"train/{base}"):
+        tail = remote.removeprefix(f"train/{base}/")
+        if tail == "result.json" or tail.startswith("answers-"):
+            wanted.append((remote, f"{base}/train-{tail}"))
+        elif adapter and tail.startswith("adapter/"):
+            wanted.append((remote, f"{base}/{tail}"))
+    return wanted
+
+
 def count_rows(paths: list[pathlib.Path]) -> int:
     return sum(1 for p in paths for line in p.read_text().splitlines() if line.strip())
 

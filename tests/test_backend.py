@@ -70,3 +70,20 @@ def test_the_store_refuses_paths_outside_it(tmp_path):
     else:
         raise AssertionError("a path outside the store was written")
     assert store.read_text("nothing/here.json") is None and store.list("nothing") == []
+
+
+def test_pull_brings_the_gguf_and_results_and_leaves_the_merged_model(tmp_path):
+    from inscribe.runs import pull_list
+
+    store = LocalBackend(tmp_path / "store").store()
+    for path in ("export/glyph-2b/gguf/my-game-glyph-2b-Q5_K_M.gguf", "export/glyph-2b/result.json", "export/glyph-2b/answers-Q5_K_M.jsonl",
+                 "export/glyph-2b/log.txt", "train/glyph-2b/result.json", "train/glyph-2b/answers-after.jsonl", "train/glyph-2b/merged/model.safetensors",
+                 "train/glyph-2b/adapter/adapter_model.safetensors", "train/glyph-2b-check/result.json", "train/sigil-4b/result.json"):
+        store.write_text(path, "x")
+    plain = dict(pull_list(store, "glyph-2b"))
+    assert plain == {"export/glyph-2b/gguf/my-game-glyph-2b-Q5_K_M.gguf": "my-game-glyph-2b-Q5_K_M.gguf",
+                     "export/glyph-2b/result.json": "glyph-2b/export-result.json", "export/glyph-2b/answers-Q5_K_M.jsonl": "glyph-2b/export-answers-Q5_K_M.jsonl",
+                     "train/glyph-2b/result.json": "glyph-2b/train-result.json", "train/glyph-2b/answers-after.jsonl": "glyph-2b/train-answers-after.jsonl"}
+    with_adapter = dict(pull_list(store, "glyph-2b", adapter=True))
+    assert with_adapter["train/glyph-2b/adapter/adapter_model.safetensors"] == "glyph-2b/adapter/adapter_model.safetensors"
+    assert not any("merged" in k for k in with_adapter) and pull_list(store, "none") == []
