@@ -10,7 +10,7 @@ You write the lore. Inscribe turns it into training scenes, has a teacher model 
 
 This is an early build. Every step from prose lore to a scored GGUF file works: it reads your lore into a game sheet for you to check, plans the data, has a teacher write the training lines and checks them, mixes them, trains on Modal, exports a GGUF file, scores it and writes a report card.
 
-Two things are missing. The replay pack the mix draws on is not published yet. And no single command runs the steps in order yet: you run them one at a time.
+One thing is missing: the replay pack the mix draws on is not published yet.
 
 | Step | Command | What it does | Status |
 |---|---|---|---|
@@ -24,6 +24,7 @@ Two things are missing. The replay pack the mix draws on is not published yet. A
 | Export | `inscribe export` | Makes the GGUF file and answers the held-out questions with it | works |
 | Score | `inscribe eval` | Lore recalled, later story told early, the character's voice, skills kept. Writes the report card | works |
 | Talk | `inscribe chat` | Talk to a character with the exported file, on your machine | works |
+| All of it | `inscribe run` | Plan, data, mix, train, export and eval in order, skipping a step that is already done | works |
 | Follow | `inscribe status`, `logs`, `stop`, `pull` | The steps a project has launched, and their files | works |
 
 `inscribe extract` drafts the game sheet from your prose, or you write it by hand. Either way, read it before you train: every later step works from the sheet. [docs/game-sheet.md](docs/game-sheet.md) describes every field.
@@ -49,22 +50,19 @@ uv run inscribe check
 uv run inscribe check --lore
 ```
 
-The whole path, one step at a time, once your prose is in `lore/`:
+The whole path, once your prose is in `lore/`:
 
 ```bash
 uv run inscribe extract     # prose to a game sheet. Read the sheet before going on
 uv run inscribe check
-uv run inscribe plan
-uv run inscribe data        # from here on the steps use your Modal account
-uv run inscribe mix
-uv run inscribe train
-uv run inscribe export
-uv run inscribe eval        # writes out/report.md
+uv run inscribe run         # plan, data, mix, train, export, eval, on your Modal account. Writes out/report.md
 uv run inscribe pull
-uv run inscribe chat           # lists the characters; then: inscribe chat <name>
+uv run inscribe chat        # lists the characters; then: inscribe chat <name>
 ```
 
-`extract`, `data` and `eval` call an outside model and need `OPENAI_API_KEY` in your shell. Every step that spends money says about how much and asks first.
+`inscribe run` lists the steps with what each will cost, and asks once. A step that already finished with the same inputs is skipped, so after a failure, a closed laptop or an edit to the sheet you run it again. `--from export` starts at a step and `--to data` stops after one. Each step is also a command of its own, in the table above.
+
+`extract`, `data` and `eval` call an outside model and need `OPENAI_API_KEY` in your shell. Every command that spends money says about how much and asks first.
 
 `check` on the example game prints:
 

@@ -9,6 +9,7 @@
     inscribe train            train the LoRA on the backend. Spends money, and asks first
     inscribe export           make the GGUF file and answer the held-out questions with it. Spends money, and asks first
     inscribe eval             score the trained model and write the report card to out/report.md. Under a dollar, and asks first
+    inscribe run              every step from plan to eval, in order. A step that finished with the same inputs is skipped
     inscribe pull             bring the GGUF file and the results to out/
     inscribe chat maren       talk to a character with the exported file, on this machine
     inscribe status           the steps this project has launched
@@ -653,6 +654,159 @@ def eval_(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B
     page = proj.out_dir / "report.md"
     page.write_text(scorecard.report_md([done[n] for n in config.base if n in done]))
     typer.echo(f"Wrote {page.relative_to(proj.root)}. It says what was not checked too.")
+
+
+RUN_STEPS = ("plan", "data", "mix", "train", "export", "eval")
+
+
+def _digest(*parts) -> str:
+    import hashlib
+
+    return hashlib.sha256(json.dumps(parts, sort_keys=True, default=str).encode()).hexdigest()[:24]
+
+
+def _file_digest(path: pathlib.Path) -> str:
+    import hashlib
+
+    return hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else ""
+
+
+def _adopt(proj: Project, backend, stage: str, run_id: str, job: dict) -> bool:
+    """A step launched earlier with this same job and still running is followed, not launched again."""
+    handle = runs.find_handle(proj, f"{stage}-{run_id}")
+    if handle is None or backend.status(handle) != "running":
+        return False
+    on_store = backend.store().read_text(f"{stage}/{run_id}/job.json")
+    if on_store is None or json.loads(on_store) != job:
+        return False
+    typer.echo(f"{stage}-{run_id} is already running from an earlier launch. Following it.")
+    result = runs.follow(backend, handle, typer.echo)
+    _report(handle, result)
+    if not result or not result.get("ok"):
+        raise typer.Exit(1)
+    return True
+
+
+@app.command()
+def run(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B006
+        from_: Annotated[str | None, typer.Option("--from", help="Start at this step and take the earlier ones as done: " + ", ".join(RUN_STEPS))] = None,
+        to: Annotated[str | None, typer.Option("--to", help="Stop after this step.")] = None,
+        again: Annotated[bool, typer.Option("--again", help="Run every step, even one that finished with the same inputs.")] = False,
+        no_judge: Annotated[bool, typer.Option("--no-judge", help="Score without the strong model's spoiler and voice reads.")] = False,
+        yes: Annotated[bool, typer.Option("--yes", "-y", help="Do not ask before spending.")] = False) -> None:
+    """Run every step in order: plan, data, mix, then train, export and eval for each base model in lora.yaml. A step that
+    already finished with the same inputs is skipped, so the command can be run again after a failure or a change."""
+    from inscribe.data import teacher as T
+    from inscribe.judges import fast as F
+
+    for name, value in (("--from", from_), ("--to", to)):
+        if value is not None and value not in RUN_STEPS:
+            raise _fail(f"{name} is one of: {', '.join(RUN_STEPS)}")
+    first, last = RUN_STEPS.index(from_ or "plan"), RUN_STEPS.index(to or "eval")
+    if first > last:
+        raise _fail("--from comes after --to.")
+    proj, config = _open(project, set_)
+    sheet, npcs = _load_inputs(proj)
+    recipes = [load_recipe(b) for b in config.base]
+    if not config.replay.source and first <= RUN_STEPS.index("mix") <= last:
+        raise _fail("No replay pack: set replay.source in lora.yaml (store:<folder> or hf://<dataset>). The pack is not published yet.")
+    # The plan is free and always the same for the same sheet, so it is built first and its hash starts the chain.
+    plan(project, set_)
+    plan_fp = _file_digest(proj.plan_dir / "plan.yaml")
+    if last == 0:
+        return
+    backend = _backend(config, proj)
+    store = backend.store()
+    data_dir, accepted = proj.build_dir / "data", proj.build_dir / "data" / "accepted.jsonl"
+    bundle = json.loads((proj.plan_dir / "recall.json").read_text())
+    jobs = {r.name: (runs.train_job(config, r, "prompts/held-out.jsonl", None), runs.export_job(config, r, r.name, "plan/imatrix.txt", "prompts/recall.jsonl"))
+            for r in recipes}
+
+    def hashes() -> dict[str, str]:
+        """The hash of what each step reads, from the files as they are now. A later step's hash includes the earlier one's."""
+        fp = {"data": _digest("data", plan_fp, config.teacher.candidates, T.TEACHER_REVISION, T.PROMPT_VERSION, config.llm.fast_model, F.DEFINITIONS_VERSION)}
+        fp["mix"] = _digest("mix", plan_fp, _file_digest(accepted), runs.mix_job(config, recipes[0], True))
+        for r in recipes:
+            fp[f"train {r.name}"] = _digest("train", fp["mix"], jobs[r.name][0], runs.held_out_rows(bundle, r.chat_format))
+            fp[f"export {r.name}"] = _digest("export", fp[f"train {r.name}"], jobs[r.name][1])
+            fp[f"eval {r.name}"] = _digest("eval", fp[f"export {r.name}"], no_judge, config.llm.strong_model)
+        return fp
+
+    def stamped(path: pathlib.Path, fp: str) -> bool:
+        return path.is_file() and path.read_text().strip() == fp
+
+    def on_store(run_dir: str, fp: str) -> bool:
+        result = store.read_text(f"{run_dir}/result.json")
+        return bool(result) and bool(json.loads(result).get("ok")) and (store.read_text(f"{run_dir}/inputs.sha256") or "").strip() == fp
+
+    fp = hashes()
+    done = {"data": stamped(data_dir / "inputs.sha256", fp["data"]) and accepted.is_file(), "mix": on_store("mix/game", fp["mix"])}
+    for r in recipes:
+        done[f"train {r.name}"] = on_store(f"train/{r.name}", fp[f"train {r.name}"])
+        done[f"export {r.name}"] = on_store(f"export/{r.name}", fp[f"export {r.name}"])
+        done[f"eval {r.name}"] = stamped(proj.out_dir / r.name / "inputs.sha256", fp[f"eval {r.name}"]) and (proj.out_dir / r.name / "report.json").is_file()
+
+    # Which steps run. Once one runs, every step after it runs too: its inputs are about to change.
+    todo: dict[str, bool] = {}
+    stale = again
+    for label in fp:
+        if first <= RUN_STEPS.index(label.split()[0]) <= last:
+            todo[label] = stale or not done[label]
+            stale = stale or todo[label]
+
+    fc = forecast(plan_counts(sheet, npcs, format_by_name(recipes[0].chat_format), config.seed)["counts"], config, recipes)
+    usd = {step["step"]: step["usd"] for step in fc["steps"]}
+    typer.echo("")
+    total, priced = 0.0, True
+    for label, runs_now in todo.items():
+        kind = label.split()[0]
+        cost = usd.get("teacher" if kind == "data" else label)
+        if not runs_now:
+            note = "done with these inputs, skipped"
+        elif kind == "mix":
+            note = "a few cents"
+        elif kind == "eval":
+            note = "free" if no_judge else "under $1 for the judge"
+        else:
+            note = "cost not known" if cost is None else f"about ${cost:.2f}" + (", then the judge, about $0.60 a thousand lines it reads" if kind == "data" else "")
+            priced = priced and cost is not None
+            total += cost or 0.0
+        typer.echo(f"  {label:<18}{note}")
+    if not any(todo.values()):
+        typer.echo("Everything is done with these inputs. `inscribe run --again` runs it all the same.")
+        return
+    typer.echo(f"GPU time for the steps to run: {'about $' + format(total, '.2f') if priced else 'not known'} (an estimate, not a quote). Budget cap: ${config.budget.max_usd:g}.")
+    if total > config.budget.max_usd:
+        raise _fail(f"That is over the budget in lora.yaml (${config.budget.max_usd:g}). Raise budget.max_usd to go ahead.")
+    needs_key = todo.get("data") or (not no_judge and any(v for k, v in todo.items() if k.startswith("eval")))
+    if needs_key and not os.environ.get(config.llm.key_env):
+        raise _fail(f"{config.llm.key_env} is not set in this shell. The judge that checks the teacher's lines and reads the trained model needs it.")
+    if not yes and not typer.confirm("Start?"):
+        raise typer.Exit(1)
+
+    # Each step is stamped with the hash of what it read once it has finished, so the next run can skip it.
+    if todo.get("data"):
+        data(project, set_, None, False, True)
+        fp = hashes()
+        (data_dir / "inputs.sha256").write_text(fp["data"] + "\n")
+    if todo.get("mix"):
+        mix(project, set_, True)
+        store.write_text("mix/game/inputs.sha256", fp["mix"] + "\n")
+    for r in recipes:
+        train_job, export_job = jobs[r.name]
+        if todo.get(f"train {r.name}"):
+            if not _adopt(proj, backend, "train", r.name, train_job):
+                train(project, set_, r.name, None, False, None, True, False)
+            store.write_text(f"train/{r.name}/inputs.sha256", fp[f"train {r.name}"] + "\n")
+        if todo.get(f"export {r.name}"):
+            if not _adopt(proj, backend, "export", r.name, export_job):
+                export(project, set_, r.name, None, None, True, False)
+            store.write_text(f"export/{r.name}/inputs.sha256", fp[f"export {r.name}"] + "\n")
+        if todo.get(f"eval {r.name}"):
+            eval_(project, set_, r.name, no_judge, False, 2.0, True)
+            (proj.out_dir / r.name / "inputs.sha256").write_text(fp[f"eval {r.name}"] + "\n")
+    if last == RUN_STEPS.index("eval"):
+        typer.echo("Done. The report card is out/report.md. `inscribe pull` brings the GGUF file, and `inscribe chat` talks to a character with it.")
 
 
 @app.command()
