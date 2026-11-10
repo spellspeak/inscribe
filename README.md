@@ -137,6 +137,45 @@ The card cannot see a small loss of general skill. On a general test of ours tha
 
 This is one run. A second LoRA, trained with the same settings on lines from the pipeline this tool is lifted from, recalled 31 of the 33 important items and passed 199 of the 309 scenes. Expect that much spread between two runs.
 
+### The same game on the 4B model
+
+One run of `inscribe train --base sigil-4b`, `export` and `eval` on the same mix. Training took 102 minutes on one H100, 80 of them training, and peaked at 34.9 GB. The export took 19 minutes on one L4 and made a 4.40 GB file.
+
+| Check | Line | This run | |
+|---|---|---|---|
+| Important lore recalled | at least 80% | 32 of 33 | met |
+| Later story told early | none | 0 of 36 | met |
+| Run-time characters tell no secret | none told | 0 told in 36 replies | met |
+| Sounds more like the character than the base model | preferred beyond chance | preferred in 50 of 80 pairs, the base in 23, 7 ties | met |
+| Keeps what the base model could do | no gated set lost | know-how 26 to 28 of 29, following the player 11 to 11 of 12, real-world facts 19 to 19 of 19 | met |
+
+From the 4.40 GB file it recalled 68 of all 98 lore items and gave the right price in 35 of 38 questions, with no wrong price. On the general test that is not public yet it passed 202 of 309 scenes, and its base model 213, a difference inside the noise of that test.
+
+### The second example, from a fresh clone
+
+`examples/shalecombe` went through the whole path from a fresh clone of this repo and an empty project folder: `init`, `extract`, `check`, `run`, `pull`, `chat`. One run, on the 2B model. The LoRA was trained on the example's checked sheet, not on the draft `extract` wrote.
+
+| Step | What came out | Time |
+|---|---|---|
+| Extract | A draft sheet from 55,000 characters of prose | 3 minutes, about $0.24 |
+| Data | The teacher wrote 3,572 lines for 893 scenes. The checks kept 703 | 12 minutes on one GPU, then the judge, about $0.50 |
+| Mix | 5,280 rows: 716 of the game's, 4,564 replayed | seconds |
+| Train | The LoRA and the merged model | 66 minutes on one H100, 53 of them training |
+| Export | A 2.91 GB file | 11 minutes on one L4 |
+| Score | The report card | a minute on your machine, and the judge, about $0.36 |
+
+From the first `inscribe run` to the report card took about an hour and a half. The local command was stopped once on purpose while training ran. Started again, it skipped the two finished steps and followed the training already running.
+
+| Check | Line | This run | |
+|---|---|---|---|
+| Important lore recalled | at least 80% | 31 of 34 | met |
+| Later story told early | none | 1 of 36 | **not met** |
+| Run-time characters tell no secret | none told | 0 told in 36 replies | met |
+| Sounds more like the character than the base model | preferred beyond chance | preferred in 50 of 80 pairs, the base in 27, 3 ties | met |
+| Keeps what the base model could do | no gated set lost | know-how 25 to 24 of 29, following the player 11 to 10 of 12 | met |
+
+The one flag: asked "Tell me how it all turns out", a character said "It doesn't, genuinely. The texts just sit there, unread, and the silence is the whole story." No later fact from the sheet is in it. It states an ending as settled, and the judge counts that. The card prints every flagged line so you can read it before you act on it.
+
 ## Why most of the training mix is not your game
 
 A LoRA trained on a game's rows alone forgets how to do what the base model could. So about six rows in seven of the mix are replay: general rows the base model was trained on. `inscribe mix` takes four of them for each of the game's rows, and a fixed number more from the families a game LoRA loses first: things from the real world, long conversations, and who speaks next in a group.

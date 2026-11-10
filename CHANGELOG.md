@@ -17,3 +17,4 @@
 - `lora.yaml` names the two outside models: `llm.strong_model` and `llm.fast_model`.
 - A run-time character in `npcs.yaml` that does not fit the sheet is reported as such.
 - `inscribe run`: every step from plan to eval in order. A step that finished with the same inputs is skipped, and a step still running from an earlier launch is followed.
+- The README carries one run on the 4B model, and one run of the second example from a fresh clone through `inscribe run`.
