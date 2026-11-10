@@ -83,6 +83,20 @@ def train_hours(recipe: Recipe, job: dict, examples: int, questions: int) -> flo
     return (BASE_SECONDS + answers + sequences * recipe.measured.train_seconds_per_example_epoch) / 3600
 
 
+ACCEPTED_AT = "data/accepted.jsonl"  # the game's accepted teacher lines, on the store
+
+
+def mix_job(config: Config, recipe: Recipe, accepted: bool) -> dict:
+    """The mix step's parameters: the config's replay ratio and source, the recipe's targeted families."""
+    return {"chat_format": recipe.chat_format, "seed": config.seed, "to_one": config.replay.to_one, "targeted": dict(recipe.replay.targeted),
+            "pack": config.replay.source, "accepted": ACCEPTED_AT if accepted else None, "style": "plan/style-examples.jsonl",
+            "worlds": "plan/worlds", "out": DATA_AT}
+
+
+def mix_spec() -> StageSpec:
+    return StageSpec(stage="mix", run_id="game", image=images.MIX, cpu=2.0, memory_mb=8192, timeout_s=60 * 60)
+
+
 def export_job(config: Config, recipe: Recipe, train_run: str, imatrix: str | None, prompts: str | None) -> dict:
     """The export step's parameters. The files are named after the game and the base model."""
     return {"merged": f"train/{train_run}/merged", "chat_format": recipe.chat_format, "name": f"{config.game}-{recipe.name}".replace("_", "-"),

@@ -8,6 +8,10 @@ base:
   sha256:
     model.safetensors: 7474e037e5eee3cc526fee353d654c92c0d9e517210f0a11d8dcafeb456bea80
 chat_format: gemma4-instruct
+replay:
+  # Extra general rows from the families a game LoRA loses first: the real-world boundary, long conversations,
+  # and who speaks next in a group.
+  targeted: {RW-01: 400, DL-06: 400, GS-04: 400, GS-05: 300, GS-06: 200}
 train:
   rank: 16
   alpha: 32

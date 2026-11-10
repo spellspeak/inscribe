@@ -3,6 +3,7 @@
     inscribe init my-game     start a game project from the template
     inscribe check            validate the game sheet, show what would be built, forecast the run. Free
     inscribe plan             build the scenes, the held-out checks and the world files. Free
+    inscribe mix              build the training mix on the backend: the game's rows and the replay. Cents
     inscribe train            train the LoRA on the backend. Spends money, and asks first
     inscribe export           make the GGUF file and answer the held-out questions with it. Spends money, and asks first
     inscribe pull             bring the GGUF file and the results to out/
@@ -250,6 +251,41 @@ def _backend(config: Config, proj: Project):
 
 
 @app.command()
+def mix(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B006
+        yes: Annotated[bool, typer.Option("--yes", "-y", help="Do not ask before spending.")] = False) -> None:
+    """Build the training mix on the backend: the game's own rows, and general rows replayed so the model keeps its skills."""
+    proj, config = _open(project, set_)
+    recipe = load_recipe(config.base[0])
+    if not config.replay.source:
+        raise _fail("No replay pack: set replay.source in lora.yaml (store:<folder> or hf://<dataset>). The pack is not published yet.")
+    if not (proj.plan_dir / "worlds").is_dir():
+        raise _fail("No build/plan/: run `inscribe plan` first.")
+    backend = _backend(config, proj)
+    store = backend.store()
+    local = proj.build_dir / "data" / "accepted.jsonl"
+    accepted = local.is_file() or bool(store.list(runs.ACCEPTED_AT))
+    job = runs.mix_job(config, recipe, accepted)
+    spec = runs.mix_spec()
+    typer.echo(f"Mix for {config.game}: {'the accepted lines and ' if accepted else ''}the sheet's speech examples, replay {job['to_one']} to 1, "
+               f"plus {sum(job['targeted'].values()):,} targeted rows. A few minutes on a CPU, a few cents.")
+    if not accepted:
+        typer.echo("  No accepted teacher lines yet (the step that writes them is not built), so the game's own rows are only its speech examples.")
+    if not yes and not typer.confirm("Start it?"):
+        raise typer.Exit(1)
+    if local.is_file():
+        store.put(local, runs.ACCEPTED_AT)
+    files = [(p, f"plan/worlds/{p.name}") for p in sorted((proj.plan_dir / "worlds").glob("*.yaml"))] + [(proj.plan_dir / "style-examples.jsonl", "plan/style-examples.jsonl")]
+    store.put_many(files) if hasattr(store, "put_many") else [store.put(p, r) for p, r in files]
+    store.write_text(f"{spec.run_dir}/job.json", json.dumps(job, indent=1) + "\n")
+    handle = backend.launch(spec)
+    runs.save_handle(proj, handle)
+    result = runs.follow(backend, handle, typer.echo)
+    _report(handle, result)
+    if not result or not result.get("ok"):
+        raise typer.Exit(1)
+
+
+@app.command()
 def train(project: ProjectOpt = pathlib.Path("."), set_: SetOpt = [],  # noqa: B006
           base: Annotated[str | None, typer.Option(help="Which base model to train. Default: the first in lora.yaml.")] = None,
           max_steps: Annotated[int | None, typer.Option("--max-steps", help="Stop after this many steps and save nothing: a cheap check of the base, the data and the first losses.")] = None,
@@ -383,6 +419,9 @@ def _report(handle, result: dict | None) -> None:
         r = result["result"]
         typer.echo(f"{name}: {r['steps']} of {r['total_steps']} steps on {r['examples']} examples in {r['train_s']} s, peak {r['peak_gb']} GB on {r['gpu']}.")
         typer.echo(f"  first losses {r['loss_first']}" + ("" if r["stopped_early"] else f", last {r['loss_last']}"))
+    elif handle.stage == "mix":
+        r = result["result"]
+        typer.echo(f"{name}: {r['examples']:,} rows: {r['parts']['game']:,} of the game's, {r['parts']['replay']:,} replayed, {sum(r['parts']['targeted'].values()):,} targeted.")
     elif handle.stage == "export":
         for quant, f in result["result"]["files"].items():
             typer.echo(f"{name}: {f['file'].rsplit('/', 1)[-1]}, {f['bytes'] / 1e9:.2f} GB" + (f", answered on the GPU: {f['on_gpu']}" if "on_gpu" in f else ""))

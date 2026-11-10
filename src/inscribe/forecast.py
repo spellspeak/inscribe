@@ -11,7 +11,6 @@ from inscribe.config import Config, Recipe
 ACCEPTED_PER_SCENE = 0.74  # 718 lines kept from 974 scenes, four candidates a scene
 TEACHER_LOAD_SECONDS = 275  # loading the teacher model before it writes anything
 TEACHER_SECONDS_PER_CANDIDATE = 0.08  # 312 seconds for 3,896 candidates
-TARGETED_REPLAY = 1700  # extra general examples for the skills a LoRA loses first
 EXPORT_HOURS = 0.5  # convert, quantize and answer the held-out questions; an assumption, not yet measured alone
 
 
@@ -20,7 +19,7 @@ def forecast(counts: dict, config: Config, recipes: list[Recipe]) -> dict:
     candidates = scenes * config.teacher.candidates
     accepted = round(scenes * ACCEPTED_PER_SCENE)
     game_examples = accepted + counts["style_cases"]
-    replay = config.replay.to_one * game_examples + TARGETED_REPLAY
+    replay = config.replay.to_one * game_examples + sum(recipes[0].replay.targeted.values())
     examples = game_examples + replay
     prices = config.backend.usd_per_hour
     teacher_hours = (TEACHER_LOAD_SECONDS + candidates * TEACHER_SECONDS_PER_CANDIDATE) / 3600

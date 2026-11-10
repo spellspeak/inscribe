@@ -123,6 +123,10 @@ class RecipeExport(_Strict):
     gpu: str
 
 
+class RecipeReplay(_Strict):
+    targeted: dict[str, int]
+
+
 class RecipeMeasured(_Strict):
     """Numbers from one training run of the example game, used only for the forecast."""
 
@@ -136,6 +140,7 @@ class Recipe(_Strict):
     title: str
     base: BaseModelPin
     chat_format: str
+    replay: RecipeReplay
     train: RecipeTrain
     export: RecipeExport
     measured: RecipeMeasured

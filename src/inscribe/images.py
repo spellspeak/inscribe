@@ -8,6 +8,9 @@ _OWN = ("pydantic==2.13.5", "pyyaml==6.0.3")  # what this package itself imports
 
 SMOKE = ImageSpec(pip=(PipLayer(_OWN),))
 
+# The mix: this package, and Hugging Face for a published replay pack.
+MIX = ImageSpec(pip=(PipLayer((*_OWN, "huggingface-hub==1.33.0")),), env=_ENV)
+
 # Training: torch built for CUDA 12.6, then the Hugging Face stack.
 TRAIN = ImageSpec(
     pip=(PipLayer(("torch==2.14.1",), index_url="https://download.pytorch.org/whl/cu126"),
