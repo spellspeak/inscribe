@@ -16,7 +16,8 @@ This is an early build. You can check a game sheet, plan the data, train on Moda
 | Check | `inscribe check` | Validates the game sheet, shows what would be built, forecasts the run | works |
 | Plan | `inscribe plan` | Builds the training scenes, the held-out questions and the world files | works |
 | Extract | | Reads prose lore into a game sheet for you to check | not built |
-| Data | | A teacher model answers the scenes. The answers are checked and mixed with general examples | not built |
+| Data | | A teacher model answers the scenes, and the answers are checked | not built |
+| Mix | `inscribe mix` | Mixes the game's rows with general rows, so the model keeps the skills it had | works; the replay pack it draws on is not published yet |
 | Train | `inscribe train` | Trains the LoRA on your Modal account and merges it | works, given training rows |
 | Follow | `inscribe status`, `logs`, `stop`, `pull` | The steps a project has launched, and their files | works |
 | Export | `inscribe export` | Makes the GGUF file and answers the held-out questions with it | works |
@@ -97,6 +98,12 @@ One run, on the 2B model, through `inscribe train` and `inscribe export`. The 5,
 "Before" is the base model at full precision, in the training container. The training step took 70 minutes on one H100, 55 of them training. The export took 14 minutes on one L4.
 
 The tool does not yet check that the model kept its general skills. On a general test of ours that is not public yet, this LoRA passed 199 of 309 scenes, and the base model 205, a difference inside the noise of that test.
+
+## Why most of the training mix is not your game
+
+A LoRA trained on a game's rows alone forgets how to do what the base model could. So about six rows in seven of the mix are replay: general rows the base model was trained on. `inscribe mix` takes four of them for each of the game's rows, and a fixed number more from the families a game LoRA loses first: things from the real world, long conversations, and who speaks next in a group.
+
+The general rows come from a replay pack, about 55,000 rows already rendered as text. The same seed always draws the same rows. The pack is not published yet, so today `inscribe mix` only works where the pack is.
 
 ## Where the GPU steps run
 
